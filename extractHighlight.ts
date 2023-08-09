@@ -1,3 +1,5 @@
+// npm install esbuild --save-dev
+
 import { TFile } from 'obsidian';
 
 
@@ -41,6 +43,9 @@ function searchQuad(minx : number, maxx : number, miny : number, maxy : number, 
 			return txt + res							// keep hyphon 
  	  }
     }, '');
+	//console.log("extractHighL: "+annot.color);
+	//console.log("   r/g/b: "+annot.color[0]+" "+annot.color[1]+" "+annot.color[2]);
+
     return highlight
   }
 
@@ -48,7 +53,7 @@ function searchQuad(minx : number, maxx : number, miny : number, maxy : number, 
 	// load the PDFpage, then get all Annotations
 	// we look only at SUPPORTED_ANNOTS (Text, Underline, Highlight)
 	// if its a underline or highlight, extract Highlight of the Annotation 
-  // accumulate all annotations in the array total
+    // accumulate all annotations in the array total
 	async function loadPage(page, pagenum : number, file: TFile, containingFolder : string, total : Object[]) {
 		let annotations = await page.getAnnotations()
 		// console.log('Annotations', annotations)
@@ -57,7 +62,10 @@ function searchQuad(minx : number, maxx : number, miny : number, maxy : number, 
 			return SUPPORTED_ANNOTS.indexOf(anno.subtype) >= 0;
 		});
 
-		const content : TextContent = await page.getTextContent({ normalizeWhitespace: true })
+		//const content : TextContent = await page.getTextContent({ normalizeWhitespace: true })
+		const content = await page.getTextContent({ normalizeWhitespace: true })
+		//const content = /*yield*/ page.getTextContent({ normalizeWhitespace: true });
+
 
 		// sort text elements
 		content.items.sort(function (a1, a2) {							
@@ -78,15 +86,19 @@ function searchQuad(minx : number, maxx : number, miny : number, maxy : number, 
 			anno.filepath = file.path		// we need a direct string property in the templates 
 			anno.pageNumber = pagenum
 			anno.author = anno.titleObj.str
-      anno.body = anno.contentsObj.str
+      		anno.body = anno.contentsObj.str
 			total.push(anno)
+			//console.log("annotations.map: "+anno.color);
+			//console.log("   r/g/b: "+anno.color[0]+" "+anno.color[1]+" "+anno.color[2]);
 		});
 	}
 
 
   export async function loadPDFFile(file : TFile, pdfjsLib, containingFolder : string, total : Object[]) {
 		const content = await this.app.vault.readBinary(file)
-		const pdf : PDFDocumentProxy = await pdfjsLib.getDocument(content).promise
+		//const pdf : PDFDocumentProxy = await pdfjsLib.getDocument(content).promise
+		const pdf = await pdfjsLib.getDocument(content).promise
+		//const pdf = yield pdfjsLib.getDocument(content).promise;
 		for (let i = 1; i <= pdf.numPages; i++) {
 			const page = await pdf.getPage(i)
 			await loadPage(page, i, file, containingFolder, total)
