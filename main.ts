@@ -1,7 +1,11 @@
-import { App, Editor, MarkdownView, TFile, Vault, Plugin, PluginSettingTab, Setting, loadPdfJs } from 'obsidian';
-import { loadPDFFile } from 'extractHighlight'
-
 // npm install obsidian
+
+//import { App, Editor, MarkdownView, TFile, Vault, Plugin, PluginSettingTab, Setting, loadPdfJs } from 'obsidian';
+import { App, Editor, MarkdownView, TFile, Vault, Plugin, loadPdfJs } from 'obsidian';
+import { loadPDFFile } from 'extractHighlight';
+import { saveDataToFile } from './saveToFile';
+import { PDFAnnotationPluginSetting } from './PDFAnnotationPluginSetting'
+import { PDFAnnotationPluginSettingTab} from './PDFAnnotationPluginSetting'
 
 
 function template(strings, ...keys) {
@@ -16,14 +20,6 @@ function template(strings, ...keys) {
     });
 }
 
-// templates for different types of Annotations
-//const highlighted = template`> ${'highlightedText'}
-// var highlighted = template`* *Page ${"pageNumber"} by ${"author"} on [[${"filepath"}]]*
-// var highlighted = template`- *Page ${"pageNumber"}:* 
-// > ${"highlightedText"}
-// 
-// `;
-// 
 
 // Colors' definition
 const color_lvl1 = [255, 173, 91];      // Orange
@@ -33,6 +29,7 @@ const color_summary = [0, 255, 0];      // Green
 const color_important = [252, 54, 54];	// Red
 const color_Min = 60;
 const color_Max = 60;
+
 
 // Formatting
 const title_lvl1 = "\n###### ";
@@ -52,12 +49,10 @@ const sumr_icon = "🟢 ";
 const impt_icon = "🔴 ";
 const unkn_icon = "⍰ ";
 // Other emojis: ⚫⚪🟣🟤⍰
-var highlighted = template`${"highlightedText"}`;
-//var highlighted_Condensed = template`${"highlightedText"}`;
 
-// var note = template`* *Page ${"pageNumber"} by ${"author"} on [[${"filepath"}]]*
+
+var highlighted = template`${"highlightedText"}`;
 var note = template`${'body'}`;
-//var note_Condensed = template`${'body'}`;
 
 
 export default class PDFAnnotationPlugin extends Plugin {
@@ -67,6 +62,7 @@ export default class PDFAnnotationPlugin extends Plugin {
     sort(grandtotal) {
         const settings = this.settings
 
+
         if (settings.sortByTopic) {
             grandtotal.forEach((anno) => {
                 const lines = anno.body.split(/\r\n|\n\r|\n|\r/); // split by:     \r\n  \n\r  \n  or  \r
@@ -74,6 +70,7 @@ export default class PDFAnnotationPlugin extends Plugin {
                 anno.body = lines.slice(1).join('\r\n')
             })
         }
+
 
         grandtotal.sort(function(a1, a2) {
             if (settings.sortByTopic) {
@@ -104,6 +101,7 @@ export default class PDFAnnotationPlugin extends Plugin {
         })
     }
 
+
     format(grandtotal, i_isForMindmap: boolean, i_isGetNrml: boolean, i_isGetLow: boolean, ) {
         // Args:
             // grandtotal:     list of annotations
@@ -117,20 +115,20 @@ export default class PDFAnnotationPlugin extends Plugin {
         let text_cd = '';
         //let text_3 = '';
         let topic = '';
-        let currentFolder = '';
-
-        let currentFolderName = ""; // SeG
+        let currentFileName   = '';
+        let currentFolderName = "";
+        let currentFullPath = "";
         let l_pageNumber = 0;
         let l_previousLevel = "";
         let l_isPrevBullet = false;
 
-        // console.log("all annots", grandtotal)
+
         grandtotal.forEach((a) => {
             // print main Title when Topic changes (and settings allow)
             if (this.settings.sortByTopic) {
                 if (topic != a.topic) {
                     topic = a.topic
-                    currentFolder = ''
+                    currentFileName = ''
                     //text += `# ${topic}\n`
                     text += `
 # ${topic}
@@ -139,16 +137,16 @@ export default class PDFAnnotationPlugin extends Plugin {
             }
 
             if (this.settings.useFolderNames) {
-                if (currentFolder != a.folder) {
-                    //currentFolder = a.folder
-                    //text += `## ${currentFolder}\n`
-                    currentFolder = a.file.name;
+                if (currentFileName != a.folder) {
+                    //currentFileName = a.folder
+                    //text += `## ${currentFileName}\n`
+                    currentFileName = a.file.name;
                     currentFolderName = a.folder; // SeG
                     if(i_isForMindmap == false) {
                         text += `
 ## Infos note
 ### Références
-- [[${currentFolder}]]
+- [[${currentFileName}]]
 
 ### Lien :
 - 
@@ -165,19 +163,19 @@ export default class PDFAnnotationPlugin extends Plugin {
 
                     }
                     else {
-                        text += "### [["+currentFolder+"]]\n";
+                        text += "### [["+currentFileName+"]]\n";
                     }
                 }
             } else {
-                if (currentFolder != a.file.name) {
-                    currentFolder = a.file.name
-                    //text += `## ${currentFolder}\n`
+                if (currentFileName != a.file.name) {
+                    currentFileName = a.file.name
+                    //text += `## ${currentFileName}\n`
                     currentFolderName = a.folder; // SeG
                     if(i_isForMindmap == false) {
                         text += `
 ## Infos note
 ### Références
-- [[${currentFolder}]]
+- [[${currentFileName}]]
 
 ### Lien :
 - 
@@ -193,12 +191,20 @@ export default class PDFAnnotationPlugin extends Plugin {
 `;
                     }
                     else {
-                        text += "### [["+currentFolder+"]]\n";
+                        text += "### [["+currentFileName+"]]\n";
                     }
                 }
             }
 
-            //console.log("Couleur: "+a.color);
+
+            // Declare variables needed below
+            let l_levelPrefix = "";
+            let l_levelFormat = "";
+            let l_levelIcon   = "";
+            let l_annoToReport = true;
+
+
+            // Add page number if needed
             if( (l_pageNumber != a.pageNumber) && (i_isForMindmap == false) )
             {// Annotations on a different page
                 text_dt += "\n##### Page " + a.pageNumber + "\n";
@@ -206,11 +212,8 @@ export default class PDFAnnotationPlugin extends Plugin {
             }
             //else: Same page, nothing to do
 
-            let l_levelPrefix = "";
-            let l_levelFormat = "";
-            let l_levelIcon   = "";
-            let l_annoToReport = true;
 
+            // Set variables depending on color
             if ((a.color[0] >= (color_lvl1[0] - color_Min)) && (a.color[0] <= (color_lvl1[0] + color_Max)) &&
                 (a.color[1] >= (color_lvl1[1] - color_Min)) && (a.color[1] <= (color_lvl1[1] + color_Max)) &&
                 (a.color[2] >= (color_lvl1[2] - color_Min)) && (a.color[2] <= (color_lvl1[2] + color_Max))) {// Color for level 1
@@ -280,10 +283,12 @@ export default class PDFAnnotationPlugin extends Plugin {
                 {   l_annoToReport   = false; }
             }
 
+
+            // Add current annotation to detailed/condensed strings
             let l_subtype = a.subtype;
             if( l_annoToReport )
             {// Annotation to report
-                if (l_subtype == 'Text') {// Notes
+                if (l_subtype == 'Text') {// Annotation: Note
                     let l_details = note(a);
     
                     while ((l_details.substring(0, 1) == " ") || (l_details.substring(0, 1) == "\n"))
@@ -294,15 +299,7 @@ export default class PDFAnnotationPlugin extends Plugin {
                     {// Remove trailing whitespace / new line
                         l_details = l_details.substring(0, l_details.length - 1);
                     }
-    
-                    /*let l_condensed = l_details;//note_Details(a);//note_Condensed(a);
-                    while ((l_condensed.substring(0, 1) == " ") || (l_condensed.substring(0, 1) == "\n")) {// Remove leading whitespace / new line
-                        l_condensed = l_condensed.substring(1);
-                    }
-                    while ((l_condensed.substring(l_condensed.length - 1) == " ") || (l_condensed.substring(l_condensed.length - 1) == "\n")) {// Remove trailing whitespace / new line
-                        l_condensed = l_condensed.substring(0, l_condensed.length - 1);
-                    }*/
-    
+        
                     if (l_levelPrefix == title_lvl1) {
                         if(i_isForMindmap == false)
                         {    text_dt += title_lvl1; }
@@ -319,7 +316,7 @@ export default class PDFAnnotationPlugin extends Plugin {
                     text_cd   += note_preamb + l_levelIcon + note_format + l_levelFormat + l_details + l_levelFormat + note_format + "\n";
                     //text_3 += note_Mindmap(a);
     
-                } else {// Highlight
+                } else {// Annotation: Highlight
                     let l_details = highlighted(a);
     
                     while ((l_details.substring(0, 1) == " ") || (l_details.substring(0, 1) == "\n")) {// Remove leading whitespace / new line
@@ -329,13 +326,6 @@ export default class PDFAnnotationPlugin extends Plugin {
                         l_details = l_details.substring(0, l_details.length - 1);
                     }
     
-                    /*let l_condensed = l_details; //highlighted_Details(a);//highlighted_Condensed(a);
-                    while ((l_condensed.substring(0, 1) == " ") || (l_condensed.substring(0, 1) == "\n")) {// Remove leading whitespace / new line
-                        l_condensed = l_condensed.substring(1);
-                    }
-                    while ((l_condensed.substring(l_condensed.length - 1) == " ") || (l_condensed.substring(l_condensed.length - 1) == "\n")) {// Remove trailing whitespace / new line
-                        l_condensed = l_condensed.substring(0, l_condensed.length - 1);
-                    }*/
     
                     if (l_levelPrefix == title_lvl1) {// Level 1 -> Title: do not set a format (except italics for a Note)
                         if(i_isForMindmap == false)
@@ -356,6 +346,8 @@ export default class PDFAnnotationPlugin extends Plugin {
             // else: Not an annotation to report
         })
 
+
+        // Add current annotation to global string
         if(i_isForMindmap)
         {   text += "###"; }
         text += "## Formattage";
@@ -376,24 +368,28 @@ export default class PDFAnnotationPlugin extends Plugin {
         text += '\n';
         if(i_isForMindmap == false) {
             text += "---\n## Annotations\n### Format condensé";
-            text += "\n#### [[" + currentFolder + "]]\n";
+            text += "\n#### [[" + currentFileName + "]]\n";
         }
-        //if(i_isForMindmap)
-        { text += "##### PDF\n";      }
+        text += "##### PDF\n";
         text += text_cd;
         if(i_isForMindmap == false)
         {
             text += "\n\n---\n### Format détaillé\n";
-            text += "\n#### [[" + currentFolder + "]]\n";
+            text += "\n#### [[" + currentFileName + "]]\n";
             text += text_dt;
         }
- 
+
+        let l_filePathName = currentFolderName+"/"+currentFileName;
+        text += "\n###### Exported to "+l_filePathName+": "+(saveDataToFile(l_filePathName + "_essai.md",text));
+        
         if (grandtotal.length == 0) {
             return ("\n" + "- **No Annotations**" + "\n");
         }
-        else return text
+        else return text;
     }
 
+
+    // Function when called from a PDF file
     async loadSinglePDFFile(file: TFile) {
         const pdfjsLib = await loadPdfJs()
         const containingFolder = file.parent.name;
@@ -401,18 +397,41 @@ export default class PDFAnnotationPlugin extends Plugin {
         console.log('loading from file ', file)
         await loadPDFFile(file, pdfjsLib, containingFolder, grandtotal)
         this.sort(grandtotal)
-        const finalMarkdown = this.format(grandtotal, false, true, true)
 
-        let filePath = file.name.replace(".pdf", ".md");
-        filePath = "Annotations for " + filePath;
-        await this.saveHighlightsToFile(filePath, finalMarkdown);
-        await this.app.workspace.openLinkText(filePath, '', true);
+        // Get file name
+        let filePath = file.name.replace(".pdf", "");
+
+        // First file: detailed & condensed versions
+        let l_fileName_1 = filePath+".md";
+        let finalMarkdown = this.format(grandtotal, false, true, true)
+        //filePath = "Annotations for " + filePath;
+        //await this.saveHighlightsToFile(filePath, finalMarkdown);
+        await saveDataToFile(l_fileName_1, finalMarkdown);
+
+        // Second file: mindmap, full version
+        let l_fileName_2 = filePath+" (mindmap).md";
+        finalMarkdown = this.format(grandtotal, true, true, true)
+        await saveDataToFile(l_fileName_2, finalMarkdown);
+        
+        // Third file: mindmap, essentials version
+        let l_fileName_3 = filePath+" (mindmap essential).md";
+        finalMarkdown = this.format(grandtotal, true, false, false)
+        await saveDataToFile(l_fileName_3, finalMarkdown);
+                
+        // Open files
+        await this.app.workspace.openLinkText(l_fileName_1, '', true);
+        await this.app.workspace.openLinkText(l_fileName_2, '', true);
+        await this.app.workspace.openLinkText(l_fileName_3, '', true);
     }
 
+
+    // Function when plugin is loaded
     async onload() {
         this.loadSettings();
         this.addSettingTab(new PDFAnnotationPluginSettingTab(this.app, this));
 
+
+        // Command when called from a PDF file
         this.addCommand({
             id: 'extract-annotations-single',
             name: 'Extract PDF Annotations on single file',
@@ -430,6 +449,9 @@ export default class PDFAnnotationPlugin extends Plugin {
             }
         })
 
+
+        // Command when called from a md file:
+            // Annotation as detailed & condensed formats
         this.addCommand({
             id: 'extract-annotations',
             name: 'Extract PDF Annotations',
@@ -481,6 +503,8 @@ Note : #Interet/==TBD== /5
         })
 
         
+        // Command when called from a md file:
+            // Annotation as mindmap format
         this.addCommand({
             id: 'extract-annotations-mindmap',
             name: 'Extract PDF Annotations (Mindmap format)',
@@ -518,6 +542,8 @@ mindmap-plugin: basic
         })
 
 
+        // Command when called from a md file:
+            // Annotation as mindmap format only for summary & important annot.
         this.addCommand({
             id: 'extract-annotations-mindmap-summary-important',
             name: 'Extract PDF Annotations (Mindmap format, summary & important only)',
@@ -558,6 +584,7 @@ mindmap-plugin: basic
     }
 
 
+    // Load settings from settings pane
     loadSettings() {
         this.settings = new PDFAnnotationPluginSetting();
         (async () => {
@@ -569,79 +596,8 @@ mindmap-plugin: basic
         })();
     }
 
+
     onunload() { }
 
-    async saveHighlightsToFile(filePath: string, mdString: string) {
-        const fileExists = await this.app.vault.adapter.exists(filePath);
-        if (fileExists) {
-            await this.appendHighlightsToFile(filePath, mdString);
-        } else {
-            await this.app.vault.create(filePath, mdString);
-        }
-    }
-
-    async appendHighlightsToFile(filePath: string, note: string) {
-        let existingContent = await this.app.vault.adapter.read(filePath);
-        if (existingContent.length > 0) {
-            existingContent = existingContent + '\r\r';
-        }
-        await this.app.vault.adapter.write(filePath, existingContent + note);
-    }
-
 
 }
-
-
-
-class PDFAnnotationPluginSetting {
-    public useFolderNames: boolean;
-    public sortByTopic: boolean;
-
-    constructor() {
-        this.useFolderNames = true;
-        this.sortByTopic = true;
-    }
-}
-
-class PDFAnnotationPluginSettingTab extends PluginSettingTab {
-    plugin: PDFAnnotationPlugin;
-
-    constructor(app: App, plugin: PDFAnnotationPlugin) {
-        super(app, plugin);
-        this.plugin = plugin;
-    }
-
-    display(): void {
-        const { containerEl } = this;
-
-        containerEl.empty();
-
-        new Setting(containerEl)
-            .setName('Use Folder Name')
-            .setDesc(
-                'If enabled, uses the PDF\'s folder name (instead of the PDF-Filename) for sorting',
-            )
-            .addToggle((toggle) =>
-                toggle.setValue(this.plugin.settings.useFolderNames).onChange((value) => {
-                    this.plugin.settings.useFolderNames = value;
-                    this.plugin.saveData(this.plugin.settings);
-
-                }),
-            );
-
-        new Setting(containerEl)
-            .setName('Sort by Topic')
-            .setDesc(
-                'If enabled, uses the notes first line as Topic for primary sorting',
-            )
-            .addToggle((toggle) =>
-                toggle.setValue(this.plugin.settings.sortByTopic).onChange((value) => {
-                    this.plugin.settings.sortByTopic = value;
-                    this.plugin.saveData(this.plugin.settings);
-                }),
-            );
-
-    }
-}
-
-
