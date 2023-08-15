@@ -102,7 +102,7 @@ export default class PDFAnnotationPlugin extends Plugin {
     }
 
 
-    format(grandtotal, i_isForMindmap: boolean, i_isGetNrml: boolean, i_isGetLow: boolean, ) {
+    format(grandtotal, i_isForMindmap: boolean, i_isGetNrml: boolean, i_isGetLow: boolean/*, i_saveToFile: boolean*/) {
         // Args:
             // grandtotal:     list of annotations
             // i_isForMindmap: true if extraction for mindmap
@@ -122,6 +122,37 @@ export default class PDFAnnotationPlugin extends Plugin {
         let l_previousLevel = "";
         let l_isPrevBullet = false;
 
+
+        if(i_isForMindmap) {// Mindmap format
+            text = `---
+
+mindmap-plugin: basic
+
+---
+`;      
+        }
+        else{// Not Mindmap format
+            // Get date and time:
+            const l_date = new Date();
+            const l_day = String(l_date.getDate()).padStart(2, '0');
+            const l_month = String(l_date.getMonth() + 1).padStart(2, '0');
+            const l_year = String(l_date.getFullYear());
+            const l_hours = String(l_date.getHours()).padStart(2, '0');
+            const l_minutes = String(l_date.getMinutes()).padStart(2, '0');
+            const l_dateTime = `${l_day}/${l_month}/${l_year} @${l_hours}:${l_minutes}`
+
+            // Set beginning of file
+            text = `MOC : ==[[MAP_OF_CONTENT_1_MOC]]==
+Source : _Annotations extracted from PDF file (see below)._
+Type : #Type/Note/Info
+Diffusion : #Diffusion/Perso
+Notes liées : -
+Date note : ${l_dateTime}
+Note : #Interet/==TBD== /5
+
+---`
+        }
+            
 
         grandtotal.forEach((a) => {
             // print main Title when Topic changes (and settings allow)
@@ -348,28 +379,37 @@ export default class PDFAnnotationPlugin extends Plugin {
 
 
         // Add current annotation to global string
+            // Formatting presentation:
+        let l_FormattageText = "";
         if(i_isForMindmap)
-        {   text += "###"; }
-        text += "## Formattage";
+        {   l_FormattageText += "###"; }
+        l_FormattageText += "## Formattage";
         if(i_isForMindmap == false)
-        {   text += " (selon couleur surlignement / note)"; }
-        text += "\n###### "+ lvl1_icon +" Orange\n";
-        text += "- "+ lvl2_icon +" Jaune\n";
-        text += "  - "+ lvl3_icon +" Bleu clair\n";
+        {   l_FormattageText += " (selon couleur surlignement / note)"; }
+        l_FormattageText += "\n###### "+ lvl1_icon +" Orange\n";
+        l_FormattageText += "- "+ lvl2_icon +" Jaune\n";
+        l_FormattageText += "  - "+ lvl3_icon +" Bleu clair\n";
         if(i_isForMindmap)
-        {   text += "- "; }
-        text += sumr_icon+sumr_format+"Vert"+sumr_format+"\n";
+        {   l_FormattageText += "- "; }
+        l_FormattageText += sumr_icon+sumr_format+"Vert"+sumr_format+"\n";
         if(i_isForMindmap)
-        {   text += "- "; }
-        text += impt_icon+impt_format+"Rouge"+impt_format+"\n";
+        {   l_FormattageText += "- "; }
+        l_FormattageText += impt_icon+impt_format+"Rouge"+impt_format+"\n";
         if(i_isForMindmap)
-        {   text += "- "; }
-        text += note_preamb+note_format+"Contenu de la note"+note_format+"\n";
-        text += '\n';
+        {   l_FormattageText += "- "; }
+        l_FormattageText += note_preamb+note_format+"Contenu de la note"+note_format+"\n";
+        l_FormattageText += '\n';
         if(i_isForMindmap == false) {
-            text += "---\n## Annotations\n### Format condensé";
-            text += "\n#### [[" + currentFileName + "]]\n";
+            l_FormattageText += "---\n## Annotations\n### Format condensé";
+            l_FormattageText += "\n#### [[" + currentFileName + "]]\n";
         }
+
+        if(i_isForMindmap == false) {// Formatting part is on top
+            text += '\n'+l_FormattageText;
+        }// else: it will be added after the annotations (so that it appears on
+         // the left part of the mindmap).
+
+        
         text += "##### PDF\n";
         text += text_cd;
         if(i_isForMindmap == false)
@@ -379,14 +419,20 @@ export default class PDFAnnotationPlugin extends Plugin {
             text += text_dt;
         }
 
-        let l_filePathName = currentFolderName+"/"+currentFileName;
-        text += "\n###### Exported to "+l_filePathName+": "+(saveDataToFile(l_filePathName + "_essai.md",text));
-        
+        /*if(i_saveToFile) {// Save to file
+            let l_filePathName = currentFolderName + "/" + currentFileName.replace(".pdf", "_essai.md");
+            text += "\n###### Saved to "+l_filePathName+": "+(saveDataToFile(l_filePathName,text))+'\n';
+        }*/
+
+        if(i_isForMindmap) {// The formatting part is after the annotations
+            text += l_FormattageText;
+        }
+
         if (grandtotal.length == 0) {
             return ("\n" + "- **No Annotations**" + "\n");
         }
         else return text;
-    }
+    } // end of format(grandtotal, ...)
 
 
     // Function when called from a PDF file
@@ -463,7 +509,7 @@ export default class PDFAnnotationPlugin extends Plugin {
 
                 const pdfjsLib = await loadPdfJs()
 
-                // Get date and time:
+                /*// Get date and time:
                 const l_date = new Date();
                 const l_day = String(l_date.getDate()).padStart(2, '0');
                 const l_month = String(l_date.getMonth() + 1).padStart(2, '0');
@@ -484,7 +530,7 @@ Note : #Interet/==TBD== /5
 ---`
 
                 //editor.replaceSelection('Extracting PDF Comments from ' + folder.name + '\n')
-                editor.replaceSelection(l_1stText)
+                editor.replaceSelection(l_1stText)*/
 
                 const promises = [] // when all Promises will be resolved. 
 
@@ -516,14 +562,14 @@ Note : #Interet/==TBD== /5
 
                 const pdfjsLib = await loadPdfJs()
 
-                // Set beginning of file
+                /*// Set beginning of file
                 let l_1stText = `---
 
 mindmap-plugin: basic
 
 ---
 `;      
-                editor.replaceSelection(l_1stText)
+                editor.replaceSelection(l_1stText)*/
 
                 const promises = [] // when all Promises will be resolved. 
 
@@ -555,14 +601,14 @@ mindmap-plugin: basic
 
                 const pdfjsLib = await loadPdfJs()
 
-                // Set beginning of file
+                /*// Set beginning of file
                 let l_1stText = `---
 
 mindmap-plugin: basic
 
 ---
 `;      
-                editor.replaceSelection(l_1stText)
+                editor.replaceSelection(l_1stText)*/
 
                 const promises = [] // when all Promises will be resolved. 
 
