@@ -4,7 +4,7 @@ import { TFile } from 'obsidian';
 
 
 const SUPPORTED_ANNOTS = ['Text', 'Highlight', 'Underline'];
-
+const COEFF_CRCT = 2;
 
 // return text between min and max, x and y
 function searchQuad(minx : number, maxx : number, miny : number, maxy : number, items : any) {
@@ -33,13 +33,14 @@ function searchQuad(minx : number, maxx : number, miny : number, maxy : number, 
       const maxx = quad.reduce((prev : number, curr : any) => Math.max(prev, curr.x), quad[0].x)
       const miny = quad.reduce((prev : number, curr : any) => Math.min(prev, curr.y), quad[0].y)
       const maxy = quad.reduce((prev : number, curr : any) => Math.max(prev, curr.y), quad[0].y)
-      const res = searchQuad(minx, maxx, miny, maxy, items)
+      const res = searchQuad(minx, maxx+COEFF_CRCT, miny, maxy, items) // Add a little to maxx otherwise the last char is ommitted
+      //txt += "minx,maxx,miny,maxy: "+minx+","+maxx+","+miny+","+maxy+",";
 	  if (txt.substring(txt.length - 1) != '-') {
 			return txt + ' ' + res    // concatenate lines by 'blank' 
-	  } else if (txt.substring(txt.length - 2).toLowerCase() == txt.substring(txt.length - 2) &&  // end by lowercase-
+	  } /*else if (txt.substring(txt.length - 2).toLowerCase() == txt.substring(txt.length - 2) &&  // end by lowercase-
 			     res.substring(0,1).toLowerCase() == res.substring(0,1)) {						 // and start with lowercase
 			return txt.substring(0,txt.length - 1) + res	// remove hyphon
-	  } else {
+	  } */else {
 			return txt + res							// keep hyphon 
  	  }
     }, '');
