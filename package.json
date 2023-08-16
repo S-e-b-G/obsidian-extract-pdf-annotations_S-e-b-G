@@ -23,6 +23,7 @@
 	},
 	"dependencies": {
 		"@types/pdf": "^0.0.31",
+		"color-convert": "^2.0.1",
 		"eslint": "^8.10.0"
 	}
 }

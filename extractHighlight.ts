@@ -35,7 +35,7 @@ function searchQuad(minx : number, maxx : number, miny : number, maxy : number, 
       const maxy = quad.reduce((prev : number, curr : any) => Math.max(prev, curr.y), quad[0].y)
       const res = searchQuad(minx-COEFF_CRCT, maxx+COEFF_CRCT, miny-COEFF_CRCT, maxy+COEFF_CRCT, items) // Add a little to maxx otherwise the last char is ommitted
       //txt += "minx,maxx,miny,maxy: "+minx+","+maxx+","+miny+","+maxy+",";
-	  if (txt.substring(txt.length - 1) != '-') {
+      if (txt.substring(txt.length - 1) != '-') {
 			return txt + ' ' + res    // concatenate lines by 'blank' 
 	  } /*else if (txt.substring(txt.length - 2).toLowerCase() == txt.substring(txt.length - 2) &&  // end by lowercase-
 			     res.substring(0,1).toLowerCase() == res.substring(0,1)) {						 // and start with lowercase

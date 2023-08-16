@@ -1,11 +1,16 @@
 // npm install obsidian
+// npm install color-convert
+
 
 //import { App, Editor, MarkdownView, TFile, Vault, Plugin, PluginSettingTab, Setting, loadPdfJs } from 'obsidian';
 import { App, Editor, MarkdownView, TFile, Vault, Plugin, loadPdfJs } from 'obsidian';
+import convert from 'color-convert';    // For color conversion
+
+// Local modules
 import { loadPDFFile } from 'extractHighlight';
 import { saveDataToFile } from './saveToFile';
 import { PDFAnnotationPluginSetting } from './PDFAnnotationPluginSetting'
-import { PDFAnnotationPluginSettingTab} from './PDFAnnotationPluginSetting'
+import { PDFAnnotationPluginSettingTab } from './PDFAnnotationPluginSetting'
 
 
 function template(strings, ...keys) {
@@ -22,32 +27,27 @@ function template(strings, ...keys) {
 
 
 // Colors' definition
-const color_lvl1 = [255, 173, 91];      // Orange
-const color_lvl2 = [255, 255, 0];       // Yellow
-const color_lvl3 = [209, 223, 235];     // Light blue
-const color_summary = [0, 255, 0];      // Green
-const color_important = [252, 54, 54];	// Red
-const color_Min = 60;
-const color_Max = 60;
+//const color_Min = 60;
+//const color_Max = 60;
 
 
 // Formatting
 const title_lvl1 = "\n###### ";
-const lvl1_format = "";
+/*const lvl1_format = "";
 const lvl2_format = "";
 const lvl3_format = "";
 const sumr_format = "**";
 const impt_format = "==";
-const note_format =  "_";
-const note_preamb = "**Note:** ";
+const note_format = "_";
+const note_preamb = "**Note:** ";*/
 const lvl2_prefix = "- ";
 const lvl3_prefix = "	- ";
-const lvl1_icon = "🟠 ";
+/*const lvl1_icon = "🟠 ";
 const lvl2_icon = "🟡 ";
 const lvl3_icon = "🔵 ";
 const sumr_icon = "🟢 ";
 const impt_icon = "🔴 ";
-const unkn_icon = "⍰ ";
+const unkn_icon = "⍰ ";*/
 // Other emojis: ⚫⚪🟣🟤⍰
 
 
@@ -104,34 +104,62 @@ export default class PDFAnnotationPlugin extends Plugin {
 
     format(grandtotal, i_isForMindmap: boolean, i_isGetNrml: boolean, i_isGetLow: boolean/*, i_saveToFile: boolean*/) {
         // Args:
-            // grandtotal:     list of annotations
-            // i_isForMindmap: true if extraction for mindmap
-            // i_isGetNrml:    true if extraction of normal priority infos (yellow)
-            // i_isGetLow:     true if extraction of low    priority infos (light blue)
+        // grandtotal:     list of annotations
+        // i_isForMindmap: true if extraction for mindmap
+        // i_isGetNrml:    true if extraction of normal priority infos (yellow)
+        // i_isGetLow:     true if extraction of low    priority infos (light blue)
         // now iterate over the annotations printing topics, then folder, then comments...
-        let text = ''
-        if (i_isForMindmap == false)
-        {    var text_dt = '';    }
-        let text_cd = '';
+        let text            = ''
+        if (i_isForMindmap == false) { var text_dt = ''; }
+        let text_cd         = '';
         //let text_3 = '';
-        let topic = '';
-        let currentFileName   = '';
+        let topic           = '';
+        let currentFileName = '';
         let currentFolderName = "";
-        let currentFullPath = "";
-        let l_pageNumber = 0;
+        //let currentFullPath = "";
+        let l_pageNumber    = 0;
         let l_previousLevel = "";
-        let l_isPrevBullet = false;
+        let l_isPrevBullet  = false;
+        let color_lvl1      = convert.rgb.hsl(this.settings.level1RGB);
+        let color_lvl2      = convert.rgb.hsl(this.settings.level2RGB);
+        let color_lvl3      = convert.rgb.hsl(this.settings.level3RGB);
+        let color_sumr      = convert.rgb.hsl(this.settings.summryRGB);
+        let color_impt      = convert.rgb.hsl(this.settings.imprttRGB);
+        let color_lvl1Hue   = color_lvl1[0];
+        let color_lvl2Hue   = color_lvl2[0];
+        let color_lvl3Hue   = color_lvl3[0];
+        let color_sumrHue   = color_sumr[0];
+        let color_imptHue   = color_impt[0];
+        let color_lvl1Lum   = color_lvl1[2];
+        let color_lvl2Lum   = color_lvl2[2];
+        let color_lvl3Lum   = color_lvl3[2];
+        let color_sumrLum   = color_sumr[2];
+        let color_imptLum   = color_impt[2];
+        let color_maxHue    = 360;
+        let color_maxLum    = 100;
+        let lvl1_format     = this.settings.lvl1_format;
+        let lvl2_format     = this.settings.lvl2_format;
+        let lvl3_format     = this.settings.lvl3_format;
+        let sumr_format     = this.settings.sumr_format;
+        let impt_format     = this.settings.impt_format;
+        let note_format     = this.settings.note_format;
+        let note_preamb     = this.settings.note_preamb+" ";
+        let lvl1_icon       = this.settings.lvl1_icon+" ";
+        let lvl2_icon       = this.settings.lvl2_icon+" ";
+        let lvl3_icon       = this.settings.lvl3_icon+" ";
+        let sumr_icon       = this.settings.sumr_icon+" ";
+        let impt_icon       = this.settings.impt_icon+" ";
+        let unkn_icon       = this.settings.unkn_icon+" ";
 
-
-        if(i_isForMindmap) {// Mindmap format
+        if (i_isForMindmap) {// Mindmap format
             text = `---
 
 mindmap-plugin: basic
 
 ---
-`;      
+`;
         }
-        else{// Not Mindmap format
+        else {// Not Mindmap format
             // Get date and time:
             const l_date = new Date();
             const l_day = String(l_date.getDate()).padStart(2, '0');
@@ -152,7 +180,7 @@ Note : #Interet/==TBD== /5
 
 ---`
         }
-            
+
 
         grandtotal.forEach((a) => {
             // print main Title when Topic changes (and settings allow)
@@ -173,7 +201,7 @@ Note : #Interet/==TBD== /5
                     //text += `## ${currentFileName}\n`
                     currentFileName = a.file.name;
                     currentFolderName = a.folder; // SeG
-                    if(i_isForMindmap == false) {
+                    if (i_isForMindmap == false) {
                         text += `
 ## Infos note
 ### Références
@@ -194,7 +222,7 @@ Note : #Interet/==TBD== /5
 
                     }
                     else {
-                        text += "### [["+currentFileName+"]]\n";
+                        text += "### [[" + currentFileName + "]]\n";
                     }
                 }
             } else {
@@ -202,7 +230,7 @@ Note : #Interet/==TBD== /5
                     currentFileName = a.file.name
                     //text += `## ${currentFileName}\n`
                     currentFolderName = a.folder; // SeG
-                    if(i_isForMindmap == false) {
+                    if (i_isForMindmap == false) {
                         text += `
 ## Infos note
 ### Références
@@ -222,7 +250,7 @@ Note : #Interet/==TBD== /5
 `;
                     }
                     else {
-                        text += "### [["+currentFileName+"]]\n";
+                        text += "### [[" + currentFileName + "]]\n";
                     }
                 }
             }
@@ -231,13 +259,12 @@ Note : #Interet/==TBD== /5
             // Declare variables needed below
             let l_levelPrefix = "";
             let l_levelFormat = "";
-            let l_levelIcon   = "";
+            let l_levelIcon = "";
             let l_annoToReport = true;
 
 
             // Add page number if needed
-            if( (l_pageNumber != a.pageNumber) && (i_isForMindmap == false) )
-            {// Annotations on a different page
+            if ((l_pageNumber != a.pageNumber) && (i_isForMindmap == false)) {// Annotations on a different page
                 text_dt += "\n##### Page " + a.pageNumber + "\n";
                 l_pageNumber = a.pageNumber;
             }
@@ -245,133 +272,137 @@ Note : #Interet/==TBD== /5
 
 
             // Set variables depending on color
-            if ((a.color[0] >= (color_lvl1[0] - color_Min)) && (a.color[0] <= (color_lvl1[0] + color_Max)) &&
+                // Get current annotation's color hue & lumi
+            let annotColor    = convert.rgb.hsl(a.color);
+            let annotColorHue = annotColor[0];
+            let annotColorLum = annotColor[2];
+            
+                // Test if current annotation is recognized
+            if( (Math.abs((100*(annotColorHue-color_lvl1Hue))/color_maxHue) <= this.settings.hueTol)  &&
+                (Math.abs((100*(annotColorLum-color_lvl1Lum))/color_maxLum) <= this.settings.LumiTol) ) 
+            /*if ((a.color[0] >= (color_lvl1[0] - color_Min)) && (a.color[0] <= (color_lvl1[0] + color_Max)) &&
                 (a.color[1] >= (color_lvl1[1] - color_Min)) && (a.color[1] <= (color_lvl1[1] + color_Max)) &&
-                (a.color[2] >= (color_lvl1[2] - color_Min)) && (a.color[2] <= (color_lvl1[2] + color_Max))) {// Color for level 1
-                l_levelPrefix     = title_lvl1;
-                l_previousLevel   = lvl2_prefix;
-                l_isPrevBullet    = false;
-                l_levelFormat     = lvl1_format;
-                l_levelIcon       = lvl1_icon;
+                (a.color[2] >= (color_lvl1[2] - color_Min)) && (a.color[2] <= (color_lvl1[2] + color_Max)))*/ {// Color for level 1
+                l_levelPrefix = title_lvl1;
+                l_previousLevel = lvl2_prefix;
+                l_isPrevBullet = false;
+                l_levelFormat = lvl1_format;
+                l_levelIcon = lvl1_icon;
             }
-            else if ((a.color[0] >= (color_lvl2[0] - color_Min)) && (a.color[0] <= (color_lvl2[0] + color_Max)) &&
-                     (a.color[1] >= (color_lvl2[1] - color_Min)) && (a.color[1] <= (color_lvl2[1] + color_Max)) &&
-                     (a.color[2] >= (color_lvl2[2] - color_Min)) && (a.color[2] <= (color_lvl2[2] + color_Max))) {// Color for level 2
-                if(i_isGetNrml)
-                {// Annotation to report
-                    l_levelPrefix     = lvl2_prefix;
-                    l_previousLevel   = l_levelPrefix;
-                    l_isPrevBullet    = true;
-                    l_levelFormat     = lvl2_format;
-                    l_levelIcon       = lvl2_icon;
+            else if( (Math.abs((100*(annotColorHue-color_lvl2Hue))/color_maxHue) <= this.settings.hueTol)  &&
+                     (Math.abs((100*(annotColorLum-color_lvl2Lum))/color_maxLum) <= this.settings.LumiTol) )
+            /*else if ((a.color[0] >= (color_lvl2[0] - color_Min)) && (a.color[0] <= (color_lvl2[0] + color_Max)) &&
+                (a.color[1] >= (color_lvl2[1] - color_Min)) && (a.color[1] <= (color_lvl2[1] + color_Max)) &&
+                (a.color[2] >= (color_lvl2[2] - color_Min)) && (a.color[2] <= (color_lvl2[2] + color_Max)))*/ {// Color for level 2
+                if (i_isGetNrml) {// Annotation to report
+                    l_levelPrefix = lvl2_prefix;
+                    l_previousLevel = l_levelPrefix;
+                    l_isPrevBullet = true;
+                    l_levelFormat = lvl2_format;
+                    l_levelIcon = lvl2_icon;
                 }
-                else
-                {   l_annoToReport    = false; }
+                else { l_annoToReport = false; }
             }
-            else if ((a.color[0] >= (color_lvl3[0] - color_Min)) && (a.color[0] <= (color_lvl3[0] + color_Max)) &&
-                     (a.color[1] >= (color_lvl3[1] - color_Min)) && (a.color[1] <= (color_lvl3[1] + color_Max)) &&
-                     (a.color[2] >= (color_lvl3[2] - color_Min)) && (a.color[2] <= (color_lvl3[2] + color_Max))) {// Color for level 3
-                if(i_isGetLow)
-                {// Annotation to report
-                    l_levelPrefix     = lvl3_prefix;
-                    l_previousLevel   = l_levelPrefix;
+            else if( (Math.abs((100*(annotColorHue-color_lvl3Hue))/color_maxHue) <= this.settings.hueTol)  &&
+                     (Math.abs((100*(annotColorLum-color_lvl3Lum))/color_maxLum) <= this.settings.LumiTol) ) 
+            /*else if ((a.color[0] >= (color_lvl3[0] - color_Min)) && (a.color[0] <= (color_lvl3[0] + color_Max)) &&
+                (a.color[1] >= (color_lvl3[1] - color_Min)) && (a.color[1] <= (color_lvl3[1] + color_Max)) &&
+                (a.color[2] >= (color_lvl3[2] - color_Min)) && (a.color[2] <= (color_lvl3[2] + color_Max)))*/ {// Color for level 3
+                if (i_isGetLow) {// Annotation to report
+                    l_levelPrefix = lvl3_prefix;
+                    l_previousLevel = l_levelPrefix;
                     if (l_isPrevBullet == false) {// We have a bullet level 2 but there was no level 1: Add one
                         text_cd += "- _{Faible importance} :_\n";
                     }
-                    l_isPrevBullet    = true;
-                    l_levelFormat     = lvl3_format;
-                    l_levelIcon       = lvl3_icon;
+                    l_isPrevBullet = true;
+                    l_levelFormat = lvl3_format;
+                    l_levelIcon = lvl3_icon;
                 }
-                else
-                {   l_annoToReport    = false; }
+                else { l_annoToReport = false; }
             }
-            else if ((a.color[0] >= (color_summary[0] - color_Min)) && (a.color[0] <= (color_summary[0] + color_Max)) &&
-                     (a.color[1] >= (color_summary[1] - color_Min)) && (a.color[1] <= (color_summary[1] + color_Max)) &&
-                     (a.color[2] >= (color_summary[2] - color_Min)) && (a.color[2] <= (color_summary[2] + color_Max))) {// Color for summary
-                l_levelPrefix    = l_previousLevel;
-                l_isPrevBullet   = true;
-                l_levelFormat    = sumr_format;
-                l_levelIcon      = sumr_icon;
+            else if( (Math.abs((100*(annotColorHue-color_sumrHue))/color_maxHue) <= this.settings.hueTol)  &&
+                     (Math.abs((100*(annotColorLum-color_sumrLum))/color_maxLum) <= this.settings.LumiTol) ) 
+            /*else if ((a.color[0] >= (color_summary[0] - color_Min)) && (a.color[0] <= (color_summary[0] + color_Max)) &&
+                (a.color[1] >= (color_summary[1] - color_Min)) && (a.color[1] <= (color_summary[1] + color_Max)) &&
+                (a.color[2] >= (color_summary[2] - color_Min)) && (a.color[2] <= (color_summary[2] + color_Max)))*/ {// Color for summary
+                l_levelPrefix = l_previousLevel;
+                l_isPrevBullet = true;
+                l_levelFormat = sumr_format;
+                l_levelIcon = sumr_icon;
             }
-            else if ((a.color[0] >= (color_important[0] - color_Min)) && (a.color[0] <= (color_important[0] + color_Max)) &&
-                     (a.color[1] >= (color_important[1] - color_Min)) && (a.color[1] <= (color_important[1] + color_Max)) &&
-                     (a.color[2] >= (color_important[2] - color_Min)) && (a.color[2] <= (color_important[2] + color_Max))) {// Color for important notation
-                l_levelPrefix    = l_previousLevel;
-                l_isPrevBullet   = true;
-                l_levelFormat    = impt_format;
-                l_levelIcon      = impt_icon;
+            else if( (Math.abs((100*(annotColorHue-color_imptHue))/color_maxHue) <= this.settings.hueTol)  &&
+                     (Math.abs((100*(annotColorLum-color_imptLum))/color_maxLum) <= this.settings.LumiTol) ) 
+            /*else if ((a.color[0] >= (color_important[0] - color_Min)) && (a.color[0] <= (color_important[0] + color_Max)) &&
+                (a.color[1] >= (color_important[1] - color_Min)) && (a.color[1] <= (color_important[1] + color_Max)) &&
+                (a.color[2] >= (color_important[2] - color_Min)) && (a.color[2] <= (color_important[2] + color_Max)))*/ {// Color for important notation
+                l_levelPrefix = l_previousLevel;
+                l_isPrevBullet = true;
+                l_levelFormat = impt_format;
+                l_levelIcon = impt_icon;
             }
             else {// Unknown color
-                if(i_isGetNrml && i_isGetLow)
-                {// Annotation to report
-                    l_levelPrefix    = "- ";
-                    l_previousLevel  = l_levelPrefix;
-                    l_isPrevBullet   = true;
-                    l_levelIcon      = unkn_icon;
+                if (i_isGetNrml && i_isGetLow) {// Annotation to report
+                    l_levelPrefix = "- ";
+                    l_previousLevel = l_levelPrefix;
+                    l_isPrevBullet = true;
+                    l_levelIcon = unkn_icon;
                     // No level format
                 }
-                else
-                {   l_annoToReport   = false; }
+                else { l_annoToReport = false; }
             }
 
 
             // Add current annotation to detailed/condensed strings
             let l_subtype = a.subtype;
-            if( l_annoToReport )
-            {// Annotation to report
+            if (l_annoToReport) {// Annotation to report
                 if (l_subtype == 'Text') {// Annotation: Note
                     let l_details = note(a);
-    
-                    while ((l_details.substring(0, 1) == " ") || (l_details.substring(0, 1) == "\n"))
-                    {// Remove leading whitespace / new line
-                        l_details = l_details.substring(1);
-                    }
-                    while ((l_details.substring(l_details.length - 1) == " ") || (l_details.substring(l_details.length - 1) == "\n"))
-                    {// Remove trailing whitespace / new line
-                        l_details = l_details.substring(0, l_details.length - 1);
-                    }
-        
-                    if (l_levelPrefix == title_lvl1) {
-                        if(i_isForMindmap == false)
-                        {    text_dt += title_lvl1; }
-                        text_cd += title_lvl1;
-                    }
-                    else {
-                        if(i_isForMindmap == false)
-                        {    text_dt += "> "; }
-                        text_cd += "- ";
-                    }
-    
-                    if(i_isForMindmap == false)
-                    { text_dt += note_preamb + l_levelIcon + note_format + l_levelFormat + l_details + l_levelFormat + note_format + "\n"; }
-                    text_cd   += note_preamb + l_levelIcon + note_format + l_levelFormat + l_details + l_levelFormat + note_format + "\n";
-                    //text_3 += note_Mindmap(a);
-    
-                } else {// Annotation: Highlight
-                    let l_details = highlighted(a);
-    
+
                     while ((l_details.substring(0, 1) == " ") || (l_details.substring(0, 1) == "\n")) {// Remove leading whitespace / new line
                         l_details = l_details.substring(1);
                     }
                     while ((l_details.substring(l_details.length - 1) == " ") || (l_details.substring(l_details.length - 1) == "\n")) {// Remove trailing whitespace / new line
                         l_details = l_details.substring(0, l_details.length - 1);
                     }
-    
-    
+                    // Replace carriage return in notes (doesn't seem to work)
+                    l_details.replace("\n","<br>");
+                    l_details.replace("\r","<br>");
+
+                    if (l_levelPrefix == title_lvl1) {
+                        if (i_isForMindmap == false) { text_dt += title_lvl1; }
+                        text_cd += title_lvl1;
+                    }
+                    else {
+                        if (i_isForMindmap == false) { text_dt += "> "; }
+                        text_cd += "- ";
+                    }
+
+                    if (i_isForMindmap == false) { text_dt += note_preamb + l_levelIcon + note_format + l_levelFormat + l_details + l_levelFormat + note_format + "\n"; }
+                    text_cd += note_preamb + l_levelIcon + note_format + l_levelFormat + l_details + l_levelFormat + note_format + "\n";
+                    //text_3 += note_Mindmap(a);
+
+                } else {// Annotation: Highlight
+                    let l_details = highlighted(a);
+
+                    while ((l_details.substring(0, 1) == " ") || (l_details.substring(0, 1) == "\n")) {// Remove leading whitespace / new line
+                        l_details = l_details.substring(1);
+                    }
+                    while ((l_details.substring(l_details.length - 1) == " ") || (l_details.substring(l_details.length - 1) == "\n")) {// Remove trailing whitespace / new line
+                        l_details = l_details.substring(0, l_details.length - 1);
+                    }
+
+
                     if (l_levelPrefix == title_lvl1) {// Level 1 -> Title: do not set a format (except italics for a Note)
-                        if(i_isForMindmap == false)
-                        {    text_dt += title_lvl1; }
+                        if (i_isForMindmap == false) { text_dt += title_lvl1; }
                         // Highlight, and not text(=Note)
                         l_levelFormat = "";
                     }
                     else {// Not level 1
-                        if(i_isForMindmap == false)
-                        {    text_dt += "> "; }
+                        if (i_isForMindmap == false) { text_dt += "> "; }
                     }
-    
-                    if(i_isForMindmap == false)
-                    { text_dt +=                 l_levelIcon + l_levelFormat + l_details + l_levelFormat + "\n"; }
-                    text_cd   += l_levelPrefix + l_levelIcon + l_levelFormat + l_details + l_levelFormat + "\n";
+
+                    if (i_isForMindmap == false) { text_dt += l_levelIcon + l_levelFormat + l_details + l_levelFormat + "\n"; }
+                    text_cd += l_levelPrefix + l_levelIcon + l_levelFormat + l_details + l_levelFormat + "\n";
                 }
             }
             // else: Not an annotation to report
@@ -379,52 +410,41 @@ Note : #Interet/==TBD== /5
 
 
         // Add current annotation to global string
-            // Formatting presentation:
+        // Formatting presentation:
         let l_FormattageText = "";
-        if(i_isForMindmap)
-        {   l_FormattageText += "###"; }
+        if (i_isForMindmap) { l_FormattageText += "###"; }
         l_FormattageText += "## Formattage";
-        if(i_isForMindmap == false)
-        {   l_FormattageText += " (selon couleur surlignement / note)"; }
-        l_FormattageText += "\n###### "+ lvl1_icon +" Orange\n";
-        l_FormattageText += "- "+ lvl2_icon +" Jaune\n";
-        l_FormattageText += "  - "+ lvl3_icon +" Bleu clair\n";
-        if(i_isForMindmap)
-        {   l_FormattageText += "- "; }
-        l_FormattageText += sumr_icon+sumr_format+"Vert"+sumr_format+"\n";
-        if(i_isForMindmap)
-        {   l_FormattageText += "- "; }
-        l_FormattageText += impt_icon+impt_format+"Rouge"+impt_format+"\n";
-        if(i_isForMindmap)
-        {   l_FormattageText += "- "; }
-        l_FormattageText += note_preamb+note_format+"Contenu de la note"+note_format+"\n";
+        if (i_isForMindmap == false) { l_FormattageText += " (selon couleur surlignement / note)"; }
+        l_FormattageText += "\n###### " + lvl1_icon + " Orange\n";
+        l_FormattageText += "- " + lvl2_icon + " Jaune\n";
+        l_FormattageText += "  - " + lvl3_icon + " Bleu clair\n";
+        if (i_isForMindmap) { l_FormattageText += "- "; }
+        l_FormattageText += sumr_icon + sumr_format + "Vert" + sumr_format + "\n";
+        if (i_isForMindmap) { l_FormattageText += "- "; }
+        l_FormattageText += impt_icon + impt_format + "Rouge" + impt_format + "\n";
+        if (i_isForMindmap) { l_FormattageText += "- "; }
+        l_FormattageText += note_preamb + note_format + "Contenu de la note" + note_format + "\n";
         l_FormattageText += '\n';
-        if(i_isForMindmap == false) {
+        if (i_isForMindmap == false) {
             l_FormattageText += "---\n## Annotations\n### Format condensé";
             l_FormattageText += "\n#### [[" + currentFileName + "]]\n";
         }
 
-        if(i_isForMindmap == false) {// Formatting part is on top
-            text += '\n'+l_FormattageText;
+        if (i_isForMindmap == false) {// Formatting part is on top
+            text += '\n' + l_FormattageText;
         }// else: it will be added after the annotations (so that it appears on
-         // the left part of the mindmap).
+        // the left part of the mindmap).
 
-        
+
         text += "##### PDF\n";
         text += text_cd;
-        if(i_isForMindmap == false)
-        {
+        if (i_isForMindmap == false) {
             text += "\n\n---\n### Format détaillé\n";
             text += "\n#### [[" + currentFileName + "]]\n";
             text += text_dt;
         }
 
-        /*if(i_saveToFile) {// Save to file
-            let l_filePathName = currentFolderName + "/" + currentFileName.replace(".pdf", "_essai.md");
-            text += "\n###### Saved to "+l_filePathName+": "+(saveDataToFile(l_filePathName,text))+'\n';
-        }*/
-
-        if(i_isForMindmap) {// The formatting part is after the annotations
+        if (i_isForMindmap) {// The formatting part is after the annotations
             text += l_FormattageText;
         }
 
@@ -445,25 +465,26 @@ Note : #Interet/==TBD== /5
         this.sort(grandtotal)
 
         // Get file name
-        let filePath = file.name.replace(".pdf", "");
+        //let filePath = file.name.replace(".pdf", "");
+        let filePath = file.path.replace(".pdf", "");
 
         // First file: detailed & condensed versions
-        let l_fileName_1 = filePath+".md";
+        let l_fileName_1 = filePath + ".md";
         let finalMarkdown = this.format(grandtotal, false, true, true)
         //filePath = "Annotations for " + filePath;
         //await this.saveHighlightsToFile(filePath, finalMarkdown);
         await saveDataToFile(l_fileName_1, finalMarkdown);
 
         // Second file: mindmap, full version
-        let l_fileName_2 = filePath+" (mindmap).md";
+        let l_fileName_2 = filePath + " (mindmap).md";
         finalMarkdown = this.format(grandtotal, true, true, true)
         await saveDataToFile(l_fileName_2, finalMarkdown);
-        
+
         // Third file: mindmap, essentials version
-        let l_fileName_3 = filePath+" (mindmap essential).md";
+        let l_fileName_3 = filePath + " (mindmap essential).md";
         finalMarkdown = this.format(grandtotal, true, false, false)
         await saveDataToFile(l_fileName_3, finalMarkdown);
-                
+
         // Open files
         await this.app.workspace.openLinkText(l_fileName_1, '', true);
         await this.app.workspace.openLinkText(l_fileName_2, '', true);
@@ -497,7 +518,7 @@ Note : #Interet/==TBD== /5
 
 
         // Command when called from a md file:
-            // Annotation as detailed & condensed formats
+        // Annotation as detailed & condensed formats
         this.addCommand({
             id: 'extract-annotations',
             name: 'Extract PDF Annotations',
@@ -508,29 +529,6 @@ Note : #Interet/==TBD== /5
                 const grandtotal = [] // array that will contain all fetched Annotations
 
                 const pdfjsLib = await loadPdfJs()
-
-                /*// Get date and time:
-                const l_date = new Date();
-                const l_day = String(l_date.getDate()).padStart(2, '0');
-                const l_month = String(l_date.getMonth() + 1).padStart(2, '0');
-                const l_year = String(l_date.getFullYear());
-                const l_hours = String(l_date.getHours()).padStart(2, '0');
-                const l_minutes = String(l_date.getMinutes()).padStart(2, '0');
-                const l_dateTime = `${l_day}/${l_month}/${l_year} @${l_hours}:${l_minutes}`
-
-                // Set beginning of file
-                let l_1stText = `MOC : ==[[MAP_OF_CONTENT_1_MOC]]==
-Source : _PDF comments extracted from file (see References)._
-Type : #Type/Note/Info
-Diffusion : #Diffusion/Perso
-Notes liées : -
-Date note : ${l_dateTime}
-Note : #Interet/==TBD== /5
-
----`
-
-                //editor.replaceSelection('Extracting PDF Comments from ' + folder.name + '\n')
-                editor.replaceSelection(l_1stText)*/
 
                 const promises = [] // when all Promises will be resolved. 
 
@@ -548,9 +546,9 @@ Note : #Interet/==TBD== /5
             }
         })
 
-        
+
         // Command when called from a md file:
-            // Annotation as mindmap format
+        // Annotation as mindmap format
         this.addCommand({
             id: 'extract-annotations-mindmap',
             name: 'Extract PDF Annotations (Mindmap format)',
@@ -561,15 +559,6 @@ Note : #Interet/==TBD== /5
                 const grandtotal = [] // array that will contain all fetched Annotations
 
                 const pdfjsLib = await loadPdfJs()
-
-                /*// Set beginning of file
-                let l_1stText = `---
-
-mindmap-plugin: basic
-
----
-`;      
-                editor.replaceSelection(l_1stText)*/
 
                 const promises = [] // when all Promises will be resolved. 
 
@@ -589,7 +578,7 @@ mindmap-plugin: basic
 
 
         // Command when called from a md file:
-            // Annotation as mindmap format only for summary & important annot.
+        // Annotation as mindmap format only for summary & important annot.
         this.addCommand({
             id: 'extract-annotations-mindmap-summary-important',
             name: 'Extract PDF Annotations (Mindmap format, summary & important only)',
@@ -600,15 +589,6 @@ mindmap-plugin: basic
                 const grandtotal = [] // array that will contain all fetched Annotations
 
                 const pdfjsLib = await loadPdfJs()
-
-                /*// Set beginning of file
-                let l_1stText = `---
-
-mindmap-plugin: basic
-
----
-`;      
-                editor.replaceSelection(l_1stText)*/
 
                 const promises = [] // when all Promises will be resolved. 
 
