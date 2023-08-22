@@ -17,6 +17,8 @@ import { PDFAnnotationPluginSettingTab } from './PDFAnnotationPluginSetting'
 const title_lvl1 = "##### ";
 const lvl2_prefix = "- ";
 const lvl3_prefix = "	- ";
+const sumr_prefix = "- ";
+const impt_prefix = "- ";
 
 var highlighted = template`${"highlightedText"}`;
 var note = template`${'body'}`;
@@ -140,7 +142,7 @@ export default class PDFAnnotationPlugin extends Plugin {
         let currentFolderName = "";
         //let currentFullPath = "";
         let l_pageNumber    = 0;
-        let l_previousLevel = "";
+        // let l_previousLevel = "";
         let l_isPrevBullet  = false;
         let color_lvl1      = convert.rgb.hsl(this.settings.level1RGB);
         let color_lvl2      = convert.rgb.hsl(this.settings.level2RGB);
@@ -269,7 +271,7 @@ mindmap-plugin: basic
                 (Math.abs((100*(annotColorLum-color_lvl1Lum))/color_maxLum) <= this.settings.LumiTol) ) 
             {// Color for level 1
                 l_levelPrefix += l_title_lvl1;
-                l_previousLevel = lvl2_prefix;
+                //l_previousLevel = lvl2_prefix;
                 l_isPrevBullet = false;
                 l_levelFormat = lvl1_format;
                 l_levelIcon = lvl1_icon;
@@ -279,7 +281,7 @@ mindmap-plugin: basic
             {// Color for level 2
                 if (i_isGetNrml) {// Annotation to report
                     l_levelPrefix = lvl2_prefix;
-                    l_previousLevel = l_levelPrefix;
+                    // l_previousLevel = l_levelPrefix;
                     l_isPrevBullet = true;
                     l_levelFormat = lvl2_format;
                     l_levelIcon = lvl2_icon;
@@ -291,7 +293,7 @@ mindmap-plugin: basic
             {// Color for level 3
                 if (i_isGetLow) {// Annotation to report
                     l_levelPrefix = lvl3_prefix;
-                    l_previousLevel = l_levelPrefix;
+                    // l_previousLevel = l_levelPrefix;
                     if (l_isPrevBullet == false) {// We have a bullet level 2 but there was no level 1: Add one
                         text_cd += "- _{Low importance} :_\n";
                     }
@@ -304,7 +306,9 @@ mindmap-plugin: basic
             else if( (Math.abs((100*(annotColorHue-color_sumrHue))/color_maxHue) <= this.settings.hueTol)  &&
                      (Math.abs((100*(annotColorLum-color_sumrLum))/color_maxLum) <= this.settings.LumiTol) ) 
             {// Color for summary
-                l_levelPrefix = l_previousLevel;
+                //l_levelPrefix = l_previousLevel;
+                l_levelPrefix = sumr_prefix;
+                // l_previousLevel = l_levelPrefix;
                 l_isPrevBullet = true;
                 l_levelFormat = sumr_format;
                 l_levelIcon = sumr_icon;
@@ -312,7 +316,9 @@ mindmap-plugin: basic
             else if( (Math.abs((100*(annotColorHue-color_imptHue))/color_maxHue) <= this.settings.hueTol)  &&
                      (Math.abs((100*(annotColorLum-color_imptLum))/color_maxLum) <= this.settings.LumiTol) ) 
             {// Color for important notation
-                l_levelPrefix = l_previousLevel;
+                //l_levelPrefix = l_previousLevel;
+                l_levelPrefix = impt_prefix;
+                // l_previousLevel = l_levelPrefix;
                 l_isPrevBullet = true;
                 l_levelFormat = impt_format;
                 l_levelIcon = impt_icon;
@@ -320,7 +326,7 @@ mindmap-plugin: basic
             else {// Unknown color
                 if (i_isGetNrml && i_isGetLow) {// Annotation to report
                     l_levelPrefix = "- ";
-                    l_previousLevel = l_levelPrefix;
+                    // l_previousLevel = l_levelPrefix;
                     l_isPrevBullet = true;
                     l_levelIcon = unkn_icon;
                     // No level format
@@ -332,108 +338,73 @@ mindmap-plugin: basic
             // Add current annotation to detailed/condensed strings
             let l_subtype = a.subtype;
             if (l_annoToReport) {// Annotation to report
-                if (l_subtype == 'Text') {// Annotation: Note
-                    let l_details = note(a);
+                let l_details = "";
+                if (l_subtype == 'Text') {  // Annotation: Note
+                    l_details = note(a);
+                } else {                    // Annotation: Highlight or underline
+                    l_details = highlighted(a);
+                }
 
-                    while ((l_details.substring(0, 1) == " ") || (l_details.substring(0, 1) == "\n")) {// Remove leading whitespace / new line
-                        l_details = l_details.substring(1);
-                    }
-                    while ((l_details.substring(l_details.length - 1) == " ") || (l_details.substring(l_details.length - 1) == "\n")) {// Remove trailing whitespace / new line
-                        l_details = l_details.substring(0, l_details.length - 1);
-                    }
-                    
-                    if(i_isForMindmap == false)
-                    {// Replace carriage return in notes (doesn't work with l_details.replace('\r',"<br>"))
-                        // l_details.replace('\r',"<br>");
-                        // l_details.replace('\n',"<br>");
-                        if( (l_details.includes('\r'))  ||
-                            (l_details.includes('\n'))  )
-                        {// There is carriage return(s)
-                            // Replace \r
-                            let l_note = l_details.split('\r');
-                            l_details = "";
-                            for (let i = 0; i < l_note.length-1; i++) {
-                                l_details += l_note[i];
-                                if(i < l_note.length-1)
-                                { l_details += "<br>"; }
-                            }
-                            // Replace \n
-                            l_note = l_details.split('\n');
-                            for (let i = 0; i < l_note.length-1; i++) {
-                                l_details += l_note[i];
-                                if(i < l_note.length-1)
-                                { l_details += "<br>"; }
-                            }
+                // Remove leading whitespace / new line
+                while ((l_details.substring(0, 1) == " ") || (l_details.substring(0, 1) == "\n"))
+                {   l_details = l_details.substring(1); }
+                // Remove trailing whitespace / new line
+                while ((l_details.substring(l_details.length - 1) == " ") || (l_details.substring(l_details.length - 1) == "\n"))
+                {   l_details = l_details.substring(0, l_details.length - 1); }
+
+                // Replace carriage returns (doesn't work with l_details.replace('\r',"<br>"))
+                if(i_isForMindmap == false) {
+                    // l_details.replace('\r',"<br>");
+                    // l_details.replace('\n',"<br>");
+                    if( (l_details.includes('\r'))  ||
+                        (l_details.includes('\n'))  )
+                    {// There is/are carriage return(s)
+                        // Replace \r
+                        let l_note = l_details.split('\r');
+                        l_details = "";
+                        for (let i = 0; i < l_note.length-1; i++) {
+                            l_details += l_note[i];
+                            if(i < l_note.length-1)
+                            {   l_details += "<br>"; }
+                        }
+                        // Replace \n
+                        l_note = l_details.split('\n');
+                        for (let i = 0; i < l_note.length-1; i++) {
+                            l_details += l_note[i];
+                            if(i < l_note.length-1)
+                            {   l_details += "<br>"; }
                         }
                     }
-                    
-                    if (l_levelPrefix == l_title_lvl1) {
-                        if (i_isForMindmap == false)
-                        {   text_dt += l_title_lvl1; }
-                        text_cd += '\n'+title_lvl1;
-                    }
-                    else {
-                        if (i_isForMindmap == false)
-                        { text_dt += "> "; }
-                        text_cd += "- ";
-                    }
+                }
 
+                // Level 1 -> Title: do not set a format (except italics for a Note)
+                if (l_levelPrefix == l_title_lvl1) {
                     if (i_isForMindmap == false)
-                    { text_dt += l_levelFormat + note_preamb + note_format + l_levelIcon + l_details + note_format + l_levelFormat + "\n"; }
-                    
-                    text_cd   += l_levelFormat + note_preamb + note_format + l_levelIcon + l_details + note_format + l_levelFormat + "\n";
-                } else {// Annotation: Highlight or underline
-                    let l_details = highlighted(a);
+                    {   text_dt += l_title_lvl1; }
+                    text_cd += '\n'+title_lvl1;
 
-                    while ((l_details.substring(0, 1) == " ") || (l_details.substring(0, 1) == "\n")) {// Remove leading whitespace / new line
-                        l_details = l_details.substring(1);
-                    }
-                    while ((l_details.substring(l_details.length - 1) == " ") || (l_details.substring(l_details.length - 1) == "\n")) {// Remove trailing whitespace / new line
-                        l_details = l_details.substring(0, l_details.length - 1);
-                    }
-
-                    if(i_isForMindmap == false)
-                    {// Replace carriage return in notes (doesn't work with l_details.replace('\r',"<br>"))
-                        // l_details.replace('\r',"<br>");
-                        // l_details.replace('\n',"<br>");
-                        if( (l_details.includes('\r'))  ||
-                            (l_details.includes('\n'))  )
-                        {// There is carriage return(s)
-                            // Replace \r
-                            let l_note = l_details.split('\r');
-                            l_details = "";
-                            for (let i = 0; i < l_note.length-1; i++) {
-                                l_details += l_note[i];
-                                if(i < l_note.length-1)
-                                { l_details += "<br>"; }
-                            }
-                            // Replace \n
-                            l_note = l_details.split('\n');
-                            for (let i = 0; i < l_note.length-1; i++) {
-                                l_details += l_note[i];
-                                if(i < l_note.length-1)
-                                { l_details += "<br>"; }
-                            }
-                        }
-                    }
-
-                    if (l_levelPrefix == l_title_lvl1) {// Level 1 -> Title: do not set a format (except italics for a Note)
-                        if (i_isForMindmap == false)
-                        {   text_dt += l_title_lvl1; }
-                        text_cd += '\n'+title_lvl1;
-                        // Highlight, and not text(=Note)
-                        l_levelFormat = "";
-                    }
-                    else {// Not level 1
-                        if (i_isForMindmap == false)
-                        { text_dt += "> "; }
-                        text_cd += l_levelPrefix;
-                    }
-
+                    // Highlight, and not text(=Note)
+                    if (l_subtype != 'Text')
+                    {   l_levelFormat = ""; }
+                }
+                else {// Not level 1
                     if (i_isForMindmap == false)
-                    { text_dt += l_levelIcon + l_levelFormat + l_details + l_levelFormat + "\n"; }
-                    
-                    text_cd   += l_levelIcon + l_levelFormat + l_details + l_levelFormat + "\n";
+                    {   text_dt += "> "; }
+
+                    /*if (l_subtype == 'Text')    // Note
+                    {   text_cd += "- "; }
+                    else                        // Highlight, and not text(=Note)*/
+                    {   text_cd += l_levelPrefix; }
+                }
+
+                if (l_subtype == 'Text') {  // Note
+                    if (i_isForMindmap == false)
+                    {   text_dt += l_levelFormat + note_preamb + note_format + l_levelIcon + l_details + note_format + l_levelFormat + "\n"; }
+                    text_cd     += l_levelFormat + note_preamb + note_format + l_levelIcon + l_details + note_format + l_levelFormat + "\n";
+                } else {                    // Annotation: Highlight or underline
+                    if (i_isForMindmap == false)
+                    {   text_dt += l_levelIcon + l_levelFormat + l_details + l_levelFormat + "\n"; }
+                    text_cd     += l_levelIcon + l_levelFormat + l_details + l_levelFormat + "\n";
                 }
             }
             // else: Not an annotation to report
@@ -448,17 +419,17 @@ mindmap-plugin: basic
         l_FormattageText += "## Format\n";
         
         l_FormattageText += title_lvl1  + lvl1_icon + lvl1_format + " Level 1 ("        + getColorName(this.settings.level1RGB) + ")" + lvl1_format + "\n";
-        l_FormattageText += "- "        + lvl2_icon + lvl2_format + " Level 2 ("        + getColorName(this.settings.level2RGB) + ")" + lvl2_format + "\n";
-        l_FormattageText += "  - "      + lvl3_icon + lvl3_format + " Level 3 ("        + getColorName(this.settings.level3RGB) + ")" + lvl3_format + "\n";
+        l_FormattageText += lvl2_prefix + lvl2_icon + lvl2_format + " Level 2 ("        + getColorName(this.settings.level2RGB) + ")" + lvl2_format + "\n";
+        l_FormattageText += lvl3_prefix + lvl3_icon + lvl3_format + " Level 3 ("        + getColorName(this.settings.level3RGB) + ")" + lvl3_format + "\n";
+        
+        //if (i_isForMindmap) { l_FormattageText += "- "; }
+        l_FormattageText += sumr_prefix + sumr_icon + sumr_format + "Special level 1 (" + getColorName(this.settings.summryRGB) + ")" + sumr_format + "\n";
+        
+        //if (i_isForMindmap) { l_FormattageText += "- "; }
+        l_FormattageText += impt_prefix + impt_icon + impt_format + "Special level 2 (" + getColorName(this.settings.imprttRGB) + ")" + impt_format + "\n";
         
         if (i_isForMindmap) { l_FormattageText += "- "; }
-        l_FormattageText +=               sumr_icon + sumr_format + "Special level 1 (" + getColorName(this.settings.summryRGB) + ")" + sumr_format + "\n";
-        
-        if (i_isForMindmap) { l_FormattageText += "- "; }
-        l_FormattageText +=               impt_icon + impt_format + "Special level 2 (" + getColorName(this.settings.imprttRGB) + ")" + impt_format + "\n";
-        
-        if (i_isForMindmap) { l_FormattageText += "- "; }
-        l_FormattageText += note_preamb +             note_format + "Note content"      +                                               note_format + "\n";
+        l_FormattageText +=             note_preamb + note_format + "Note content"      +                                               note_format + "\n";
 
         if (i_isForMindmap == false) {
             text += l_FormattageText;
