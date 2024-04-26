@@ -4,7 +4,9 @@ import { TFile } from 'obsidian';
 
 
 const SUPPORTED_ANNOTS = ['Text', 'Highlight', 'Underline'];
-const COEFF_CRCT = 2;
+//const COEFF_CRCT = 2;
+const COEFF_CRCT_LOW = 0;
+const COEFF_CRCT_HIGH = 2;
 
 // return text between min and max, x and y
 function searchQuad(minx : number, maxx : number, miny : number, maxy : number, items : any) {
@@ -33,7 +35,8 @@ function searchQuad(minx : number, maxx : number, miny : number, maxy : number, 
       const maxx = quad.reduce((prev : number, curr : any) => Math.max(prev, curr.x), quad[0].x)
       const miny = quad.reduce((prev : number, curr : any) => Math.min(prev, curr.y), quad[0].y)
       const maxy = quad.reduce((prev : number, curr : any) => Math.max(prev, curr.y), quad[0].y)
-      const res = searchQuad(minx-COEFF_CRCT, maxx+COEFF_CRCT, miny-COEFF_CRCT, maxy+COEFF_CRCT, items) // Add a little to maxx otherwise the last char is ommitted
+      //const res = searchQuad(minx-COEFF_CRCT, maxx+COEFF_CRCT, miny-COEFF_CRCT, maxy+COEFF_CRCT, items) // Add a little to maxx otherwise the last char is ommitted
+      const res = searchQuad(minx-COEFF_CRCT_LOW, maxx+COEFF_CRCT_HIGH, miny-COEFF_CRCT_LOW, maxy+COEFF_CRCT_LOW, items) // Add a little to maxx otherwise the last char is ommitted
       //txt += "minx,maxx,miny,maxy: "+minx+","+maxx+","+miny+","+maxy+",";
       if (txt.substring(txt.length - 1) != '-') {
 			return txt + ' ' + res    // concatenate lines by 'blank' 
