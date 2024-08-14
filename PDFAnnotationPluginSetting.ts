@@ -7,14 +7,17 @@ import { App, PluginSettingTab, Setting } from 'obsidian';
 export class PDFAnnotationPluginSetting {
     public useFolderNames: boolean;
     public sortByTopic: boolean;
+    // Page between which the plugin will be enabled
+    public page_min: number;
+    public page_max: number;
     // Colors
-    public level1RGB  : number[];
-    public level2RGB  : number[];
-    public level3RGB  : number[];
-    public summryRGB  : number[];
-    public imprttRGB  : number[];
-    public hueTol     : number;
-    public LumiTol    : number;
+    public level1RGB: number[];
+    public level2RGB: number[];
+    public level3RGB: number[];
+    public summryRGB: number[];
+    public imprttRGB: number[];
+    public hueTol: number;
+    public LumiTol: number;
     // Formats
     public lvl1_format: string;
     public lvl2_format: string;
@@ -24,108 +27,111 @@ export class PDFAnnotationPluginSetting {
     public note_format: string;
     public note_preamb: string;
     // Icons
-    public lvl1_icon  : string;
-    public lvl2_icon  : string;
-    public lvl3_icon  : string;
-    public sumr_icon  : string;
-    public impt_icon  : string;
-    public ext_lvl1_icon  : string;
-    public ext_lvl2_icon  : string;
-    public ext_lvl3_icon  : string;
-    public ext_sumr_icon  : string;
-    public ext_impt_icon  : string;
-    public unkn_icon  : string;
+    public lvl1_icon: string;
+    public lvl2_icon: string;
+    public lvl3_icon: string;
+    public sumr_icon: string;
+    public impt_icon: string;
+    public ext_lvl1_icon: string;
+    public ext_lvl2_icon: string;
+    public ext_lvl3_icon: string;
+    public ext_sumr_icon: string;
+    public ext_impt_icon: string;
+    public unkn_icon: string;
     // Preambles
-    public begin_prb  : string;
-    public pdf_f_prb  : string;
-    public perso_prb  : string;
-    public conds_prb  : string;
-    public detal_prb  : string;
-    public no_an_prb  : string;
+    public begin_prb: string;
+    public pdf_f_prb: string;
+    public perso_prb: string;
+    public conds_prb: string;
+    public detal_prb: string;
+    public no_an_prb: string;
     // Mindmaps
-    public mm_preamb  : boolean;
-    public mm_fl_tog  : boolean;
-    public mm_fl_suf  : string;
-    public mm_es_tog  : boolean;
-    public mm_es_suf  : string;
+    public mm_preamb: boolean;
+    public mm_fl_tog: boolean;
+    public mm_fl_suf: string;
+    public mm_es_tog: boolean;
+    public mm_es_suf: string;
     // External mindmaps
-    public ext_preamb : boolean;
-    public ext_fl_tog : boolean;
-    public ext_fl_suf : string;
-    public ext_es_tog : boolean;
-    public ext_es_suf : string;
-    
+    public ext_preamb: boolean;
+    public ext_fl_tog: boolean;
+    public ext_fl_suf: string;
+    public ext_es_tog: boolean;
+    public ext_es_suf: string;
+
     constructor() {
         this.useFolderNames = true;
-        this.sortByTopic    = true;
-        this.level1RGB      = [255, 173,  91];
-        this.level2RGB      = [255, 255,   0];
-        this.level3RGB      = [209, 223, 235];
-        this.summryRGB      = [  0, 255,   0];
-        this.imprttRGB      = [252,  54,  54];
-        this.hueTol         = 5;
-        this.LumiTol        = 30;
-        this.lvl1_format    = "";
-        this.lvl2_format    = "";
-        this.lvl3_format    = "";
-        this.sumr_format    = "**";
-        this.impt_format    = "==";
-        this.note_format    = "*";
-        this.note_preamb    = "Note:";
-        this.lvl1_icon      = "🟠";
-        this.lvl2_icon      = "🟡";
-        this.lvl3_icon      = "🔵";
-        this.sumr_icon      = "🟢";
-        this.impt_icon      = "🔴";
-        this.ext_lvl1_icon  = "¤";
-        this.ext_lvl2_icon  = "";
-        this.ext_lvl3_icon  = "";
-        this.ext_sumr_icon  = "📝";
-        this.ext_impt_icon  = "⭐";
-        this.unkn_icon      = "⍰";
+        this.sortByTopic = true;
+        this.page_min = 0;
+        this.page_max = 0;
+        this.level1RGB = [255, 173, 91];
+        this.level2RGB = [255, 255, 0];
+        this.level3RGB = [209, 223, 235];
+        this.summryRGB = [0, 255, 0];
+        this.imprttRGB = [252, 54, 54];
+        this.hueTol = 5;
+        this.LumiTol = 30;
+        this.lvl1_format = "";
+        this.lvl2_format = "";
+        this.lvl3_format = "";
+        this.sumr_format = "**";
+        this.impt_format = "==";
+        this.note_format = "*";
+        this.note_preamb = "Note:";
+        this.lvl1_icon = "🟠";
+        this.lvl2_icon = "🟡";
+        this.lvl3_icon = "🔵";
+        this.sumr_icon = "🟢";
+        this.impt_icon = "🔴";
+        this.ext_lvl1_icon = "¤";
+        this.ext_lvl2_icon = "";
+        this.ext_lvl3_icon = "";
+        this.ext_sumr_icon = "📝";
+        this.ext_impt_icon = "⭐";
+        this.unkn_icon = "⍰";
         // Other emojis: ⚫⚪🟣🟤⍰
-        this.begin_prb      = `---
+        this.begin_prb = `---
 MOC:
     - \"[[MAP_OF_CONTENT_1_MOC]]\"
 Source: _Annotations extracted from PDF file (see below)._
-Projets: 
-Notes liées: 
+Projets:
+Notes liées:
 Date: \" {dateTime}\"
 tags:
     - \"#Type/Note/Info\"
     - \"#Diffusion/Perso\"
 ---`;
-        this.pdf_f_prb      = `
+        this.pdf_f_prb = `
 ## *Infos note*
 ### *Références*
 - [[{fileName}]]
 
 ### *Liens*
-- 
+-
 
 ### *Concepts clés / Synthèse*
-- 
+-
 
 ---
-## *Sommaire*
-\`\`\`toc
+\`\`\`table-of-contents
+title:==**_Sommaire de la note :_**==
+style:nestedOrderedList
 \`\`\`
 ---
 `;
-        this.perso_prb      = "### Synthèse perso";
-        this.conds_prb      = "### Format condensé";
-        this.detal_prb      = "### Format détaillé";
-        this.no_an_prb      = "- **Aucune annotation**";
-        this.mm_preamb      = true;
-        this.mm_fl_tog      = true;
-        this.mm_fl_suf      = "(mm)";
-        this.mm_es_tog      = true;
-        this.mm_es_suf      = "(mm essential)";
-        this.ext_preamb     = true;
-        this.ext_fl_tog     = true;
-        this.ext_fl_suf     = "(ext mm)";
-        this.ext_es_tog     = true;
-        this.ext_es_suf     = "(ext mm essential)";
+        this.perso_prb = "### Synthèse perso";
+        this.conds_prb = "### Format condensé";
+        this.detal_prb = "### Format détaillé";
+        this.no_an_prb = "- **Aucune annotation**";
+        this.mm_preamb = true;
+        this.mm_fl_tog = true;
+        this.mm_fl_suf = "(mm)";
+        this.mm_es_tog = true;
+        this.mm_es_suf = "(mm essential)";
+        this.ext_preamb = true;
+        this.ext_fl_tog = true;
+        this.ext_fl_suf = "(ext mm)";
+        this.ext_es_tog = true;
+        this.ext_es_suf = "(ext mm essential)";
     }
 }
 
@@ -145,7 +151,7 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
         containerEl.empty();
         containerEl.createEl('h2', { text: 'Extract PDF Annotations options ' });
 
-        
+
         // Setting: Folder name instead of file name
         new Setting(containerEl)
             .setName('Use Folder Name')
@@ -175,13 +181,39 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             );
 
 
+        // PAGES between which the plugin will be enabled
+        // PAGE min:
+        new Setting(containerEl)
+            .setName('1st page')
+            .setDesc('First page to extract annotations from. \nDefault: 0 (i.e. first page)')
+            .addText(text => text
+                .setValue(this.plugin.settings.page_min.toString())
+                .onChange(async (value) => {
+                    this.plugin.settings.page_min = parseInt(value);
+                    await this.plugin.saveData(this.plugin.settings);
+                }),
+            );
+
+        // PAGE max:
+        new Setting(containerEl)
+            .setName('Last page')
+            .setDesc('Last page to extract annotations up to. \nDefault: 0 (i.e. last page)')
+            .addText(text => text
+                .setValue(this.plugin.settings.page_max.toString())
+                .onChange(async (value) => {
+                    this.plugin.settings.page_max = parseInt(value);
+                    await this.plugin.saveData(this.plugin.settings);
+                }),
+            );
+
+
         // LEVELS: RGB VALUES, HUE TOLERANCE, LUMI TOLERANCE
-            // LEVEL 1: Color
+        // LEVEL 1: Color
         new Setting(containerEl)
             .setName('Color: Level 1')
-            .setDesc('R,G,B values for level 1 (separated by commas). Default: Orange (255,173, 91)')
+            .setDesc('R,G,B values for level 1 (separated by commas). \nDefault: Orange (255,173, 91)')
             .addText(text => text
-                .setValue(this.plugin.settings.level1RGB[0] +","+this.plugin.settings.level1RGB[1] +","+this.plugin.settings.level1RGB[2])
+                .setValue(this.plugin.settings.level1RGB[0] + "," + this.plugin.settings.level1RGB[1] + "," + this.plugin.settings.level1RGB[2])
                 .onChange(async (value) => {
                     this.plugin.settings.level1RGB = value.split(',').map(Number);
                     await this.plugin.saveData(this.plugin.settings);
@@ -189,12 +221,12 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             );
 
 
-            // LEVEL 2: Color
+        // LEVEL 2: Color
         new Setting(containerEl)
             .setName('Color: Level 2')
-            .setDesc('R,G,B values for level 2 (separated by commas). Default: Yellow (255,255,  0)')
+            .setDesc('R,G,B values for level 2 (separated by commas).\nDefault: Yellow (255,255,  0)')
             .addText(text => text
-                .setValue(this.plugin.settings.level2RGB[0] +","+this.plugin.settings.level2RGB[1] +","+this.plugin.settings.level2RGB[2])
+                .setValue(this.plugin.settings.level2RGB[0] + "," + this.plugin.settings.level2RGB[1] + "," + this.plugin.settings.level2RGB[2])
                 .onChange(async (value) => {
                     this.plugin.settings.level2RGB = value.split(',').map(Number);
                     await this.plugin.saveData(this.plugin.settings);
@@ -202,12 +234,12 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             );
 
 
-            // LEVEL 3: Color
+        // LEVEL 3: Color
         new Setting(containerEl)
             .setName('Color: Level 3')
-            .setDesc('R,G,B values for level 3 (separated by commas). Default: Light blue (209,223,235)')
+            .setDesc('R,G,B values for level 3 (separated by commas).\nDefault: Light blue (209,223,235)')
             .addText(text => text
-                .setValue(this.plugin.settings.level3RGB[0] +","+this.plugin.settings.level3RGB[1] +","+this.plugin.settings.level3RGB[2])
+                .setValue(this.plugin.settings.level3RGB[0] + "," + this.plugin.settings.level3RGB[1] + "," + this.plugin.settings.level3RGB[2])
                 .onChange(async (value) => {
                     this.plugin.settings.level3RGB = value.split(',').map(Number);
                     await this.plugin.saveData(this.plugin.settings);
@@ -215,12 +247,12 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             );
 
 
-            // SUMMARY: Color
+        // SUMMARY: Color
         new Setting(containerEl)
             .setName('Color: Special level (1)')
-            .setDesc('R,G,B values for special level (1) such as summaries (separated by commas). Default: Green (  0, 255,  0)')
+            .setDesc('R,G,B values for special level (1) such as summaries (separated by commas).\nDefault: Green (  0, 255,  0)')
             .addText(text => text
-                .setValue(this.plugin.settings.summryRGB[0] +","+this.plugin.settings.summryRGB[1] +","+this.plugin.settings.summryRGB[2])
+                .setValue(this.plugin.settings.summryRGB[0] + "," + this.plugin.settings.summryRGB[1] + "," + this.plugin.settings.summryRGB[2])
                 .onChange(async (value) => {
                     this.plugin.settings.summryRGB = value.split(',').map(Number);
                     await this.plugin.saveData(this.plugin.settings);
@@ -228,12 +260,12 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             );
 
 
-            // IMPORTANT: Color
+        // IMPORTANT: Color
         new Setting(containerEl)
             .setName('Color: Special level (2)')
-            .setDesc('R,G,B values for special level (2) such as important annot. (separated by commas). Default: Red (252, 54, 54)')
+            .setDesc('R,G,B values for special level (2) such as important annot. (separated by commas).\nDefault: Red (252, 54, 54)')
             .addText(text => text
-                .setValue(this.plugin.settings.imprttRGB[0] +","+this.plugin.settings.imprttRGB[1] +","+this.plugin.settings.imprttRGB[2])
+                .setValue(this.plugin.settings.imprttRGB[0] + "," + this.plugin.settings.imprttRGB[1] + "," + this.plugin.settings.imprttRGB[2])
                 .onChange(async (value) => {
                     this.plugin.settings.imprttRGB = value.split(',').map(Number);
                     await this.plugin.saveData(this.plugin.settings);
@@ -241,10 +273,10 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             );
 
 
-            // Hue tolerance
+        // Hue tolerance
         new Setting(containerEl)
             .setName('Color: Hue tolerance (%)')
-            .setDesc('Indicate the hue tolerance (in %) to recognize the colors. Default: 5')
+            .setDesc('Indicate the hue tolerance (in %) to recognize the colors.\nDefault: 5')
             .addText(text => text
                 .setValue(this.plugin.settings.hueTol.toString())
                 .onChange(async (value) => {
@@ -254,10 +286,10 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             );
 
 
-            // Luminosity tolerance
+        // Luminosity tolerance
         new Setting(containerEl)
             .setName('Color: Luminosity tolerance (%)')
-            .setDesc('Indicate the luminosity tolerance (in %) to recognize the colors. Default: 30')
+            .setDesc('Indicate the luminosity tolerance (in %) to recognize the colors.\nDefault: 30')
             .addText(text => text
                 .setValue(this.plugin.settings.LumiTol.toString())
                 .onChange(async (value) => {
@@ -268,10 +300,10 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
 
 
         // FORMATS
-            // Level 1
+        // Level 1
         new Setting(containerEl)
             .setName('Format: Level 1')
-            .setDesc('Indicate the format for level 1 annotations. Default: [Empty]')
+            .setDesc('Indicate the format for level 1 annotations.\nDefault: [Empty]')
             .addText(text => text
                 .setValue(this.plugin.settings.lvl1_format)
                 .onChange(async (value) => {
@@ -281,10 +313,10 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             );
 
 
-            // Level 2
+        // Level 2
         new Setting(containerEl)
             .setName('Format: Level 2')
-            .setDesc('Indicate the format for level 2 annotations. Default: [Empty]')
+            .setDesc('Indicate the format for level 2 annotations.\nDefault: [Empty]')
             .addText(text => text
                 .setValue(this.plugin.settings.lvl2_format)
                 .onChange(async (value) => {
@@ -294,10 +326,10 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             );
 
 
-            // Level 3
+        // Level 3
         new Setting(containerEl)
             .setName('Format: Level 3')
-            .setDesc('Indicate the format for level 3 annotations. Default: [Empty]')
+            .setDesc('Indicate the format for level 3 annotations.\nDefault: [Empty]')
             .addText(text => text
                 .setValue(this.plugin.settings.lvl3_format)
                 .onChange(async (value) => {
@@ -307,10 +339,10 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             );
 
 
-            // Summary
+        // Summary
         new Setting(containerEl)
             .setName('Format: Summary')
-            .setDesc('Indicate the format for summary annotations. Default: **')
+            .setDesc('Indicate the format for summary annotations.\nDefault: **')
             .addText(text => text
                 .setValue(this.plugin.settings.sumr_format)
                 .onChange(async (value) => {
@@ -320,10 +352,10 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             );
 
 
-            // Important
+        // Important
         new Setting(containerEl)
             .setName('Format: Important')
-            .setDesc('Indicate the format for important annotations. Default: ==')
+            .setDesc('Indicate the format for important annotations.\nDefault: ==')
             .addText(text => text
                 .setValue(this.plugin.settings.impt_format)
                 .onChange(async (value) => {
@@ -333,10 +365,10 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             );
 
 
-            // Notes
+        // Notes
         new Setting(containerEl)
             .setName('Format: Notes')
-            .setDesc('Indicate the format for notes. Default: _')
+            .setDesc('Indicate the format for notes.\nDefault: _')
             .addText(text => text
                 .setValue(this.plugin.settings.note_format)
                 .onChange(async (value) => {
@@ -349,167 +381,167 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
         // NOTE PREAMBLE
         new Setting(containerEl)
             .setName('Preamble: Notes')
-            .setDesc('Indicate the notes\'preamble. Default: **Note:**')
+            .setDesc('Indicate the notes\'preamble.\nDefault: **Note:**')
             .addText(text => text
                 .setValue(this.plugin.settings.note_preamb)
                 .onChange(async (value) => {
-                    this.plugin.settings.note_preamb = value+" ";
+                    this.plugin.settings.note_preamb = value + " ";
                     await this.plugin.saveData(this.plugin.settings);
                 }),
             );
 
 
         // ICONS
-            // Level 1
+        // Level 1
         new Setting(containerEl)
             .setName('Icons: Level 1')
-            .setDesc('Indicate the icon for level 1 annotations. Default: 🟠')
+            .setDesc('Indicate the icon for level 1 annotations.\nDefault: 🟠')
             .addText(text => text
                 .setValue(this.plugin.settings.lvl1_icon)
                 .onChange(async (value) => {
-                    this.plugin.settings.lvl1_icon = value+" ";
+                    this.plugin.settings.lvl1_icon = value + " ";
                     await this.plugin.saveData(this.plugin.settings);
                 }),
             );
 
 
-            // Level 2
+        // Level 2
         new Setting(containerEl)
             .setName('Icons: Level 2')
-            .setDesc('Indicate the icon for level 2 annotations. Default: 🟡')
+            .setDesc('Indicate the icon for level 2 annotations.\nDefault: 🟡')
             .addText(text => text
                 .setValue(this.plugin.settings.lvl2_icon)
                 .onChange(async (value) => {
-                    this.plugin.settings.lvl2_icon = value+" ";
+                    this.plugin.settings.lvl2_icon = value + " ";
                     await this.plugin.saveData(this.plugin.settings);
                 }),
             );
 
 
-            // Level 3
+        // Level 3
         new Setting(containerEl)
             .setName('Icons: Level 3')
-            .setDesc('Indicate the icon for level 3 annotations. Default: 🔵')
+            .setDesc('Indicate the icon for level 3 annotations.\nDefault: 🔵')
             .addText(text => text
                 .setValue(this.plugin.settings.lvl3_icon)
                 .onChange(async (value) => {
-                    this.plugin.settings.lvl3_icon = value+" ";
+                    this.plugin.settings.lvl3_icon = value + " ";
                     await this.plugin.saveData(this.plugin.settings);
                 }),
             );
 
 
-            // Summmary
+        // Summmary
         new Setting(containerEl)
             .setName('Icons: Summary')
-            .setDesc('Indicate the icon for summaries annotations. Default: 🟢')
+            .setDesc('Indicate the icon for summaries annotations.\nDefault: 🟢')
             .addText(text => text
                 .setValue(this.plugin.settings.sumr_icon)
                 .onChange(async (value) => {
-                    this.plugin.settings.sumr_icon = value+" ";
+                    this.plugin.settings.sumr_icon = value + " ";
                     await this.plugin.saveData(this.plugin.settings);
                 }),
             );
 
 
-            // Important
+        // Important
         new Setting(containerEl)
             .setName('Icons: Important')
-            .setDesc('Indicate the icon for important annotations. Default: 🔴')
+            .setDesc('Indicate the icon for important annotations.\nDefault: 🔴')
             .addText(text => text
                 .setValue(this.plugin.settings.impt_icon)
                 .onChange(async (value) => {
-                    this.plugin.settings.impt_icon = value+" ";
+                    this.plugin.settings.impt_icon = value + " ";
                     await this.plugin.saveData(this.plugin.settings);
                 }),
             );
 
 
-            // External mindmap: Level 1
+        // External mindmap: Level 1
         new Setting(containerEl)
             .setName('Icons (ext. mm): Level 1')
-            .setDesc('Indicate the icon for level 1 annotations for external mindmap. Default: ¤')
+            .setDesc('Indicate the icon for level 1 annotations for external mindmap.\nDefault: ¤')
             .addText(text => text
                 .setValue(this.plugin.settings.ext_lvl1_icon)
                 .onChange(async (value) => {
-                    this.plugin.settings.ext_lvl1_icon = value+" ";
+                    this.plugin.settings.ext_lvl1_icon = value + " ";
                     await this.plugin.saveData(this.plugin.settings);
                 }),
             );
 
 
-            // External mindmap: Level 2
+        // External mindmap: Level 2
         new Setting(containerEl)
             .setName('Icons (ext. mm): Level 2')
-            .setDesc('Indicate the icon for level 2 annotations for external mindmaps. Default: [None]')
+            .setDesc('Indicate the icon for level 2 annotations for external mindmaps.\nDefault: [None]')
             .addText(text => text
                 .setValue(this.plugin.settings.ext_lvl2_icon)
                 .onChange(async (value) => {
-                    this.plugin.settings.ext_lvl2_icon = value+" ";
+                    this.plugin.settings.ext_lvl2_icon = value + " ";
                     await this.plugin.saveData(this.plugin.settings);
                 }),
             );
 
 
-            // External mindmap: Level 3
+        // External mindmap: Level 3
         new Setting(containerEl)
             .setName('Icons (ext. mm): Level 3')
-            .setDesc('Indicate the icon for level 3 annotations for external mindmaps. Default: [None]')
+            .setDesc('Indicate the icon for level 3 annotations for external mindmaps.\nDefault: [None]')
             .addText(text => text
                 .setValue(this.plugin.settings.ext_lvl3_icon)
                 .onChange(async (value) => {
-                    this.plugin.settings.ext_lvl3_icon = value+" ";
+                    this.plugin.settings.ext_lvl3_icon = value + " ";
                     await this.plugin.saveData(this.plugin.settings);
                 }),
             );
 
 
-            // External mindmap: Summmary
+        // External mindmap: Summmary
         new Setting(containerEl)
             .setName('Icons (ext. mm): Summary')
-            .setDesc('Indicate the icon for summaries annotations for external mindmaps. Default: R📝')
+            .setDesc('Indicate the icon for summaries annotations for external mindmaps.\nDefault: R📝')
             .addText(text => text
                 .setValue(this.plugin.settings.ext_sumr_icon)
                 .onChange(async (value) => {
-                    this.plugin.settings.ext_sumr_icon = value+" ";
+                    this.plugin.settings.ext_sumr_icon = value + " ";
                     await this.plugin.saveData(this.plugin.settings);
                 }),
             );
 
 
-            // External mindmap: Important
+        // External mindmap: Important
         new Setting(containerEl)
             .setName('Icons (ext. mm): Important')
-            .setDesc('Indicate the icon for important annotations for external mindmaps. Default: I⭐')
+            .setDesc('Indicate the icon for important annotations for external mindmaps.\nDefault: I⭐')
             .addText(text => text
                 .setValue(this.plugin.settings.ext_impt_icon)
                 .onChange(async (value) => {
-                    this.plugin.settings.ext_impt_icon = value+" ";
+                    this.plugin.settings.ext_impt_icon = value + " ";
                     await this.plugin.saveData(this.plugin.settings);
                 }),
             );
 
 
-            // Unknown
+        // Unknown
         new Setting(containerEl)
             .setName('Icons: Unknown')
-            .setDesc('Indicate the icon for unknown\'s level annotations. Default: ⍰')
+            .setDesc('Indicate the icon for unknown\'s level annotations.\nDefault: ⍰')
             .addText(text => text
                 .setValue(this.plugin.settings.unkn_icon)
                 .onChange(async (value) => {
-                    this.plugin.settings.unkn_icon = value+" ";
+                    this.plugin.settings.unkn_icon = value + " ";
                     await this.plugin.saveData(this.plugin.settings);
                 }),
             );
 
 
         // PREAMBLES
-            // File's beginning
-            new Setting(containerEl)
+        // File's beginning
+        new Setting(containerEl)
             .setName('Preambles: File beginning')
             .setDesc('Text inserted at the file\'s beginning. \nThe marker {dateTime} will be replaced by\nthe date/Time in \"DD/MM/YYYY @HH:mm\" format')
             .addTextArea(text => {
-                text.inputEl.style.width  = '100%'
+                text.inputEl.style.width = '100%'
                 text.inputEl.style.height = '200px'
                 text.setValue(this.plugin.settings.begin_prb)
                 text.onChange(async (value) => {
@@ -519,25 +551,25 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             });
 
 
-            // PDF file preamble
-            new Setting(containerEl)
+        // PDF file preamble
+        new Setting(containerEl)
             .setName('Preambles: PDF')
             .setDesc('Text inserted at each new PDF.\nThe marker {fileName} will be replaced by\nthe PDF file name')
             .addTextArea(text => {
-                text.inputEl.style.width  = '100%'
+                text.inputEl.style.width = '100%'
                 text.inputEl.style.height = '250px'
                 text.setValue(this.plugin.settings.pdf_f_prb)
                 text.onChange(async (value) => {
                     this.plugin.settings.pdf_f_prb = value;
                     await this.plugin.saveData(this.plugin.settings);
                 });
-    });
+            });
 
 
-            // Manual personal annotations preamble
-            new Setting(containerEl)
+        // Manual personal annotations preamble
+        new Setting(containerEl)
             .setName('Preambles: Manual personal annotations')
-            .setDesc('Preamble for manual annotations to add to the extracted ones. Default: ### Synthèse perso')
+            .setDesc('Preamble for manual annotations to add to the extracted ones.\nDefault: ### Synthèse perso')
             .addText(text => text
                 .setValue(this.plugin.settings.perso_prb)
                 .onChange(async (value) => {
@@ -547,10 +579,10 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             );
 
 
-            // Condensed annotations preamble
-            new Setting(containerEl)
+        // Condensed annotations preamble
+        new Setting(containerEl)
             .setName('Preambles: Condensed')
-            .setDesc('Preamble for the condensed annotations. Default: ### Format condensé')
+            .setDesc('Preamble for the condensed annotations.\nDefault: ### Format condensé')
             .addText(text => text
                 .setValue(this.plugin.settings.conds_prb)
                 .onChange(async (value) => {
@@ -560,10 +592,10 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             );
 
 
-            // Detailed annotations preamble
-            new Setting(containerEl)
+        // Detailed annotations preamble
+        new Setting(containerEl)
             .setName('Preambles: Detailed')
-            .setDesc('Preamble for the detailed annotations. Default: ### Format détaillé')
+            .setDesc('Preamble for the detailed annotations.\nDefault: ### Format détaillé')
             .addText(text => text
                 .setValue(this.plugin.settings.detal_prb)
                 .onChange(async (value) => {
@@ -573,10 +605,10 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             );
 
 
-            // No annotation preamble
-            new Setting(containerEl)
+        // No annotation preamble
+        new Setting(containerEl)
             .setName('Preambles: No annotation')
-            .setDesc('Preamble in case there is no annotation. Default: - **Aucune annotation**')
+            .setDesc('Preamble in case there is no annotation.\nDefault: - **Aucune annotation**')
             .addText(text => text
                 .setValue(this.plugin.settings.conds_prb)
                 .onChange(async (value) => {
@@ -588,8 +620,8 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
 
 
         // MINDMAPS
-            // Mindmap preamble
-            new Setting(containerEl)
+        // Mindmap preamble
+        new Setting(containerEl)
             .setName('Mindmap: Add a level')
             .setDesc('If enabled, add a level containing all nodes to save space',)
             .addToggle((toggle) =>
@@ -601,8 +633,8 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             );
 
 
-            // Full mindmap toggle
-            new Setting(containerEl)
+        // Full mindmap toggle
+        new Setting(containerEl)
             .setName('From PDF: Generate full mindmap')
             .setDesc('If enabled, generate the full mindmap when calling the plugin from a PDF file',)
             .addToggle((toggle) =>
@@ -614,10 +646,10 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             );
 
 
-            // Full mindmap file's suffixe
-            new Setting(containerEl)
+        // Full mindmap file's suffixe
+        new Setting(containerEl)
             .setName('File suffixes: Full mindmap')
-            .setDesc('File\'s suffixe for the mindmap file. Default: (mm)')
+            .setDesc('File\'s suffixe for the mindmap file.\nDefault: (mm)')
             .addText(text => text
                 .setValue(this.plugin.settings.mm_fl_suf)
                 .onChange(async (value) => {
@@ -627,8 +659,8 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             );
 
 
-            // Essential mindmap toggle
-            new Setting(containerEl)
+        // Essential mindmap toggle
+        new Setting(containerEl)
             .setName('From PDF: Generate essentials mindmap')
             .setDesc('If enabled, generate the mindmap with essentials (special levels) annotations when calling the plugin from a PDF file',)
             .addToggle((toggle) =>
@@ -640,10 +672,10 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             );
 
 
-            // Mindmap of essentials file's suffixe
-            new Setting(containerEl)
+        // Mindmap of essentials file's suffixe
+        new Setting(containerEl)
             .setName('File suffixes: Mindmap of essentials')
-            .setDesc('File\'s suffixe for the mindmap with only essentials (special levels) annotations. Default: (mm essential)')
+            .setDesc('File\'s suffixe for the mindmap with only essentials (special levels) annotations.\nDefault: (mm essential)')
             .addText(text => text
                 .setValue(this.plugin.settings.mm_es_suf)
                 .onChange(async (value) => {
@@ -655,8 +687,8 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
 
 
         // EXTERNAL MINDMAPS
-            // Mindmap preamble
-            new Setting(containerEl)
+        // Mindmap preamble
+        new Setting(containerEl)
             .setName('External Mindmap: Add a level')
             .setDesc('If enabled, add a level containing all nodes to save space',)
             .addToggle((toggle) =>
@@ -668,8 +700,8 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             );
 
 
-            // Full external-mindmap toggle
-            new Setting(containerEl)
+        // Full external-mindmap toggle
+        new Setting(containerEl)
             .setName('From PDF: Generate full file for external mindmap')
             .setDesc('If enabled, generate the full file for external mindmap when calling the plugin from a PDF file',)
             .addToggle((toggle) =>
@@ -681,10 +713,10 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             );
 
 
-            // Full external-mindmap file's suffixe
-            new Setting(containerEl)
+        // Full external-mindmap file's suffixe
+        new Setting(containerEl)
             .setName('File suffixes: Full external-mindmap')
-            .setDesc('File\'s suffixe for the external-mindmap file. Default: (ext mm)')
+            .setDesc('File\'s suffixe for the external-mindmap file.\nDefault: (ext mm)')
             .addText(text => text
                 .setValue(this.plugin.settings.ext_fl_suf)
                 .onChange(async (value) => {
@@ -694,8 +726,8 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             );
 
 
-            // Essential external mindmap toggle
-            new Setting(containerEl)
+        // Essential external mindmap toggle
+        new Setting(containerEl)
             .setName('From PDF: Generate essentials file for external mindmap')
             .setDesc('If enabled, generate the file for external mindmap with essentials (special levels) annotations when calling the plugin from a PDF file',)
             .addToggle((toggle) =>
@@ -707,10 +739,10 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             );
 
 
-            // Mindmap of essentials file's suffixe
-            new Setting(containerEl)
+        // Mindmap of essentials file's suffixe
+        new Setting(containerEl)
             .setName('File suffixes: File for external mindmap of essentials')
-            .setDesc('File\'s suffixe for the external-mindmap with only essentials (special levels) annotations. Default: (ext mm essential)')
+            .setDesc('File\'s suffixe for the external-mindmap with only essentials (special levels) annotations.\nDefault: (ext mm essential)')
             .addText(text => text
                 .setValue(this.plugin.settings.ext_es_suf)
                 .onChange(async (value) => {

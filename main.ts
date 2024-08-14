@@ -1,5 +1,10 @@
 // npm install obsidian
 // npm install color-convert
+//
+// To run:
+//      npm install -g typescript
+//      npm install --save-dev @types/codemirror @types/dom-to-image @types/estree @types/node @types/randomcolor @types/resolve @types/tern
+//      npm run build
 
 
 //import { App, Editor, MarkdownView, TFile, Vault, Plugin, PluginSettingTab, Setting, loadPdfJs } from 'obsidian';
@@ -104,12 +109,12 @@ export default class PDFAnnotationPlugin extends Plugin {
             }
 
             if (settings.useFolderNames) {
-                // then sort by folder  
+                // then sort by folder
                 if (a1.folder > a2.folder) return 1
                 if (a1.folder < a2.folder) return -1
             }
 
-            // then sort by file.name  
+            // then sort by file.name
             if (a1.file.name > a2.file.name) return 1
             if (a1.file.name < a2.file.name) return -1
 
@@ -290,11 +295,11 @@ mindmap-plugin: basic
             let annotColorHue = annotColor[0];
             let annotColorLum = annotColor[2];
             l_note_sfx        = ""
-            
+
                 // Test if current annotation is recognized
             l_annoToReport = true;
             if( (Math.abs((100*(annotColorHue-color_lvl1Hue))/color_maxHue) <= this.settings.hueTol)  &&
-                (Math.abs((100*(annotColorLum-color_lvl1Lum))/color_maxLum) <= this.settings.LumiTol) ) 
+                (Math.abs((100*(annotColorLum-color_lvl1Lum))/color_maxLum) <= this.settings.LumiTol) )
             {// Color for level 1
                 l_levelPrefix = l_title_lvl1;
                 //l_previousLevel = lvl2_prefix;
@@ -323,7 +328,7 @@ mindmap-plugin: basic
                 else { l_annoToReport = false; }
             }
             else if( (Math.abs((100*(annotColorHue-color_lvl3Hue))/color_maxHue) <= this.settings.hueTol)  &&
-                     (Math.abs((100*(annotColorLum-color_lvl3Lum))/color_maxLum) <= this.settings.LumiTol) ) 
+                     (Math.abs((100*(annotColorLum-color_lvl3Lum))/color_maxLum) <= this.settings.LumiTol) )
             {// Color for level 3
                 if (i_isGetLow) {// Annotation to report
                     l_levelPrefix = l_lvl3_prefix;
@@ -341,7 +346,7 @@ mindmap-plugin: basic
                 else { l_annoToReport = false; }
             }
             else if( (Math.abs((100*(annotColorHue-color_sumrHue))/color_maxHue) <= this.settings.hueTol)  &&
-                     (Math.abs((100*(annotColorLum-color_sumrLum))/color_maxLum) <= this.settings.LumiTol) ) 
+                     (Math.abs((100*(annotColorLum-color_sumrLum))/color_maxLum) <= this.settings.LumiTol) )
             {// Color for summary
                 //l_levelPrefix = l_previousLevel;
                 l_levelPrefix = l_sumr_prefix;
@@ -354,7 +359,7 @@ mindmap-plugin: basic
                 {   l_levelIcon = ext_sumr_icon; }
             }
             else if( (Math.abs((100*(annotColorHue-color_imptHue))/color_maxHue) <= this.settings.hueTol)  &&
-                     (Math.abs((100*(annotColorLum-color_imptLum))/color_maxLum) <= this.settings.LumiTol) ) 
+                     (Math.abs((100*(annotColorLum-color_imptLum))/color_maxLum) <= this.settings.LumiTol) )
             {// Color for important notation
                 //l_levelPrefix = l_previousLevel;
                 l_levelPrefix = l_impt_prefix;
@@ -524,7 +529,7 @@ mindmap-plugin: basic
         const containingFolder = file.parent.name;
         const grandtotal = [] // array that will contain all fetched Annotations
         console.log('loading from file ', file)
-        await loadPDFFile(file, pdfjsLib, containingFolder, grandtotal)
+        await loadPDFFile(file, this.settings.page_min, this.settings.page_max, pdfjsLib, containingFolder, grandtotal)
         this.sort(grandtotal)
 
         // Get file name
@@ -607,13 +612,13 @@ mindmap-plugin: basic
 
                 const pdfjsLib = await loadPdfJs()
 
-                const promises = [] // when all Promises will be resolved. 
+                const promises = [] // when all Promises will be resolved.
 
                 Vault.recurseChildren(folder, async (file) => {
                     // visit all Childern of parent folder of current active File
                     if (file instanceof TFile) {
                         if (file.extension === 'pdf') {
-                            promises.push(loadPDFFile(file, pdfjsLib, file.parent.name, grandtotal))
+                            promises.push(loadPDFFile(file, this.settings.page_min, this.settings.page_max, pdfjsLib, file.parent.name, grandtotal))
                         }
                     }
                 })
@@ -637,13 +642,13 @@ mindmap-plugin: basic
 
                 const pdfjsLib = await loadPdfJs()
 
-                const promises = [] // when all Promises will be resolved. 
+                const promises = [] // when all Promises will be resolved.
 
                 Vault.recurseChildren(folder, async (file) => {
                     // visit all Childern of parent folder of current active File
                     if (file instanceof TFile) {
                         if (file.extension === 'pdf') {
-                            promises.push(loadPDFFile(file, pdfjsLib, file.parent.name, grandtotal))
+                            promises.push(loadPDFFile(file, this.settings.page_min, this.settings.page_max, pdfjsLib, file.parent.name, grandtotal))
                         }
                     }
                 })
@@ -667,13 +672,13 @@ mindmap-plugin: basic
 
                 const pdfjsLib = await loadPdfJs()
 
-                const promises = [] // when all Promises will be resolved. 
+                const promises = [] // when all Promises will be resolved.
 
                 Vault.recurseChildren(folder, async (file) => {
                     // visit all Childern of parent folder of current active File
                     if (file instanceof TFile) {
                         if (file.extension === 'pdf') {
-                            promises.push(loadPDFFile(file, pdfjsLib, file.parent.name, grandtotal))
+                            promises.push(loadPDFFile(file, this.settings.page_min, this.settings.page_max, pdfjsLib, file.parent.name, grandtotal))
                         }
                     }
                 })
@@ -697,13 +702,13 @@ mindmap-plugin: basic
 
                 const pdfjsLib = await loadPdfJs()
 
-                const promises = [] // when all Promises will be resolved. 
+                const promises = [] // when all Promises will be resolved.
 
                 Vault.recurseChildren(folder, async (file) => {
                     // visit all Childern of parent folder of current active File
                     if (file instanceof TFile) {
                         if (file.extension === 'pdf') {
-                            promises.push(loadPDFFile(file, pdfjsLib, file.parent.name, grandtotal))
+                            promises.push(loadPDFFile(file, this.settings.page_min, this.settings.page_max, pdfjsLib, file.parent.name, grandtotal))
                         }
                     }
                 })
