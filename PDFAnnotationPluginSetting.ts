@@ -52,7 +52,6 @@ export class PDFAnnotationPluginSetting {
     public mm_es_tog: boolean;
     public mm_es_suf: string;
     // External mindmaps
-    public ext_preamb: boolean;
     public ext_fl_tog: boolean;
     public ext_fl_suf: string;
     public ext_es_tog: boolean;
@@ -82,13 +81,13 @@ export class PDFAnnotationPluginSetting {
         this.lvl3_icon = "🔵";
         this.sumr_icon = "🟢";
         this.impt_icon = "🔴";
-        this.ext_lvl1_icon = "¤";
+        this.ext_lvl1_icon = "📌";
         this.ext_lvl2_icon = "";
-        this.ext_lvl3_icon = "";
+        this.ext_lvl3_icon = "🔷";
         this.ext_sumr_icon = "📝";
-        this.ext_impt_icon = "⭐";
-        this.unkn_icon = "⍰";
-        // Other emojis: ⚫⚪🟣🟤⍰
+        this.ext_impt_icon = "⚠️";
+        this.unkn_icon = "❔";
+        // Other emojis: ⚫⚪🟣🟤❔
         this.begin_prb = `---
 MOC:
     - \"[[MAP_OF_CONTENT_1_MOC]]\"
@@ -125,12 +124,11 @@ style:nestedOrderedList
         this.mm_preamb = true;
         this.mm_fl_tog = true;
         this.mm_fl_suf = "(mm)";
-        this.mm_es_tog = true;
+        this.mm_es_tog = false;
         this.mm_es_suf = "(mm essential)";
-        this.ext_preamb = true;
-        this.ext_fl_tog = true;
+        this.ext_fl_tog = false;
         this.ext_fl_suf = "(ext mm)";
-        this.ext_es_tog = true;
+        this.ext_es_tog = false;
         this.ext_es_suf = "(ext mm essential)";
     }
 }
@@ -460,7 +458,7 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
         // External mindmap: Level 1
         new Setting(containerEl)
             .setName('Icons (ext. mm): Level 1')
-            .setDesc('Indicate the icon for level 1 annotations for external mindmap.\nDefault: ¤')
+            .setDesc('Indicate the icon for level 1 annotations for external mindmap.\nDefault: 📌')
             .addText(text => text
                 .setValue(this.plugin.settings.ext_lvl1_icon)
                 .onChange(async (value) => {
@@ -486,7 +484,7 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
         // External mindmap: Level 3
         new Setting(containerEl)
             .setName('Icons (ext. mm): Level 3')
-            .setDesc('Indicate the icon for level 3 annotations for external mindmaps.\nDefault: [None]')
+            .setDesc('Indicate the icon for level 3 annotations for external mindmaps.\nDefault: 🔷')
             .addText(text => text
                 .setValue(this.plugin.settings.ext_lvl3_icon)
                 .onChange(async (value) => {
@@ -499,7 +497,7 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
         // External mindmap: Summmary
         new Setting(containerEl)
             .setName('Icons (ext. mm): Summary')
-            .setDesc('Indicate the icon for summaries annotations for external mindmaps.\nDefault: R📝')
+            .setDesc('Indicate the icon for summaries annotations for external mindmaps.\nDefault: 📝')
             .addText(text => text
                 .setValue(this.plugin.settings.ext_sumr_icon)
                 .onChange(async (value) => {
@@ -512,7 +510,7 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
         // External mindmap: Important
         new Setting(containerEl)
             .setName('Icons (ext. mm): Important')
-            .setDesc('Indicate the icon for important annotations for external mindmaps.\nDefault: I⭐')
+            .setDesc('Indicate the icon for important annotations for external mindmaps.\nDefault: ⚠️')
             .addText(text => text
                 .setValue(this.plugin.settings.ext_impt_icon)
                 .onChange(async (value) => {
@@ -525,7 +523,7 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
         // Unknown
         new Setting(containerEl)
             .setName('Icons: Unknown')
-            .setDesc('Indicate the icon for unknown\'s level annotations.\nDefault: ⍰')
+            .setDesc('Indicate the icon for unknown\'s level annotations.\nDefault: ❔')
             .addText(text => text
                 .setValue(this.plugin.settings.unkn_icon)
                 .onChange(async (value) => {
@@ -620,9 +618,35 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
 
 
         // MINDMAPS
+        // Full Obsidian mindmap toggle
+        new Setting(containerEl)
+            .setName('From PDF: Generate full Obsidian mindmap')
+            .setDesc('If enabled, generate the full mindmap for Obsidian when calling the plugin from a PDF file',)
+            .addToggle((toggle) =>
+                toggle.setValue(this.plugin.settings.mm_fl_tog).onChange((value) => {
+                    this.plugin.settings.mm_fl_tog = value;
+                    this.plugin.saveData(this.plugin.settings);
+
+                }),
+            );
+
+
+        // Full Obsidian mindmap file's suffixe
+        new Setting(containerEl)
+            .setName('File suffixes: Full Obsidian mindmap')
+            .setDesc('File\'s suffixe for the Obsidian mindmap file.\nDefault: (mm)')
+            .addText(text => text
+                .setValue(this.plugin.settings.mm_fl_suf)
+                .onChange(async (value) => {
+                    this.plugin.settings.mm_fl_suf = value;
+                    await this.plugin.saveData(this.plugin.settings);
+                }),
+            );
+
+
         // Mindmap preamble
         new Setting(containerEl)
-            .setName('Mindmap: Add a level')
+            .setName('Obsidian mindmap: Add a level')
             .setDesc('If enabled, add a level containing all nodes to save space',)
             .addToggle((toggle) =>
                 toggle.setValue(this.plugin.settings.mm_preamb).onChange((value) => {
@@ -633,36 +657,10 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
             );
 
 
-        // Full mindmap toggle
-        new Setting(containerEl)
-            .setName('From PDF: Generate full mindmap')
-            .setDesc('If enabled, generate the full mindmap when calling the plugin from a PDF file',)
-            .addToggle((toggle) =>
-                toggle.setValue(this.plugin.settings.mm_fl_tog).onChange((value) => {
-                    this.plugin.settings.mm_es_tog = value;
-                    this.plugin.saveData(this.plugin.settings);
-
-                }),
-            );
-
-
-        // Full mindmap file's suffixe
-        new Setting(containerEl)
-            .setName('File suffixes: Full mindmap')
-            .setDesc('File\'s suffixe for the mindmap file.\nDefault: (mm)')
-            .addText(text => text
-                .setValue(this.plugin.settings.mm_fl_suf)
-                .onChange(async (value) => {
-                    this.plugin.settings.mm_fl_suf = value;
-                    await this.plugin.saveData(this.plugin.settings);
-                }),
-            );
-
-
         // Essential mindmap toggle
         new Setting(containerEl)
-            .setName('From PDF: Generate essentials mindmap')
-            .setDesc('If enabled, generate the mindmap with essentials (special levels) annotations when calling the plugin from a PDF file',)
+            .setName('From PDF: Generate essentials Obsidian mindmap')
+            .setDesc('If enabled, generate the Obsidian mindmap with essentials (special levels) annotations when calling the plugin from a PDF file',)
             .addToggle((toggle) =>
                 toggle.setValue(this.plugin.settings.mm_es_tog).onChange((value) => {
                     this.plugin.settings.mm_es_tog = value;
@@ -674,8 +672,8 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
 
         // Mindmap of essentials file's suffixe
         new Setting(containerEl)
-            .setName('File suffixes: Mindmap of essentials')
-            .setDesc('File\'s suffixe for the mindmap with only essentials (special levels) annotations.\nDefault: (mm essential)')
+            .setName('File suffixes: Obsidian Mindmap of essentials')
+            .setDesc('File\'s suffixe for the Obsidian mindmap with only essentials (special levels) annotations.\nDefault: (mm essential)')
             .addText(text => text
                 .setValue(this.plugin.settings.mm_es_suf)
                 .onChange(async (value) => {
@@ -687,26 +685,13 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
 
 
         // EXTERNAL MINDMAPS
-        // Mindmap preamble
-        new Setting(containerEl)
-            .setName('External Mindmap: Add a level')
-            .setDesc('If enabled, add a level containing all nodes to save space',)
-            .addToggle((toggle) =>
-                toggle.setValue(this.plugin.settings.ext_preamb).onChange((value) => {
-                    this.plugin.settings.ext_preamb = value;
-                    this.plugin.saveData(this.plugin.settings);
-
-                }),
-            );
-
-
         // Full external-mindmap toggle
         new Setting(containerEl)
             .setName('From PDF: Generate full file for external mindmap')
             .setDesc('If enabled, generate the full file for external mindmap when calling the plugin from a PDF file',)
             .addToggle((toggle) =>
                 toggle.setValue(this.plugin.settings.ext_fl_tog).onChange((value) => {
-                    this.plugin.settings.ext_es_tog = value;
+                    this.plugin.settings.ext_fl_tog = value;
                     this.plugin.saveData(this.plugin.settings);
 
                 }),
@@ -750,7 +735,6 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
                     await this.plugin.saveData(this.plugin.settings);
                 }),
             );
-
 
 
     }

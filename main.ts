@@ -191,7 +191,7 @@ export default class PDFAnnotationPlugin extends Plugin {
         let l_levelIcon = "";
         let l_annoToReport = true;
         let l_title_lvl1 = "\n"+title_lvl1;
-        let l_note_sfx = ""
+        let l_note_sfx = "";
 
         let l_lvl2_prefix = lvl2_prefix;
         let l_lvl3_prefix = lvl3_prefix;
@@ -400,8 +400,10 @@ mindmap-plugin: basic
                 while ((l_details.substring(l_details.length - 1) == " ") || (l_details.substring(l_details.length - 1) == "\n"))
                 {   l_details = l_details.substring(0, l_details.length - 1); }
 
-                // Replace carriage returns (doesn't work with l_details.replace('\r',"<br>"))
-                if(i_isForMindmap == false) {
+                // Replace carriage returns (\r or \n)
+                if(i_isForExtMindmap == false) {
+                    // Replace by <br>
+                    // Note: doesn't work with l_details.replace('\r',"<br>")
                     // l_details.replace('\r',"<br>");
                     // l_details.replace('\n',"<br>");
                     if( (l_details.includes('\r'))  ||
@@ -545,7 +547,7 @@ mindmap-plugin: basic
             // Open file
         await this.app.workspace.openLinkText(l_fileName_1, '', true);
 
-        // Second file: mindmap, full version
+        // Second file: Obsidian mindmap, full version
         if(this.settings.mm_fl_tog) {
             let l_fileName_2 = filePath + " " + this.settings.mm_fl_suf + ".md";
             finalMarkdown = this.format(grandtotal, true, false, true, true)
@@ -553,8 +555,8 @@ mindmap-plugin: basic
             await this.app.workspace.openLinkText(l_fileName_2, '', true);
         }
 
-        // Third file: mindmap, essentials version
-        if(this.settings.mm_fl_tog) {
+        // Third file: Obsidian mindmap, essentials version
+        if(this.settings.mm_es_tog) {
             //let l_fileName_3 = filePath + " (mindmap essential).md";
             let l_fileName_3 = filePath + " " + this.settings.mm_es_suf + ".md";
             finalMarkdown = this.format(grandtotal, true, false, false, false)
@@ -562,12 +564,20 @@ mindmap-plugin: basic
             await this.app.workspace.openLinkText(l_fileName_3, '', true);
         }
 
-        // Fourth file: for external mindmap
+        // Fourth file: External mindmap, full version
         if(this.settings.ext_fl_tog) {
             let l_fileName_4 = filePath + " " + this.settings.ext_fl_suf + ".md";
             finalMarkdown = this.format(grandtotal, false, true, true, true)
             await saveDataToFile(l_fileName_4, finalMarkdown);
             await this.app.workspace.openLinkText(l_fileName_4, '', true);
+        }
+
+        // Fifth file: External mindmap, essentials version
+        if(this.settings.ext_es_tog) {
+            let l_fileName_5 = filePath + " " + this.settings.ext_es_suf + ".md";
+            finalMarkdown = this.format(grandtotal, false, true, false, false)
+            await saveDataToFile(l_fileName_5, finalMarkdown);
+            await this.app.workspace.openLinkText(l_fileName_5, '', true);
         }
 
     }
